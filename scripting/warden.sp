@@ -6,6 +6,7 @@
 #pragma newdecls required
 
 #define PLUGIN_VERSION   "4.1.0"
+#define TRANSLATION_PREFIX "[Warden] %t"
 
 int Warden = -1;
 Handle g_cVar_mnotes = INVALID_HANDLE;
@@ -41,6 +42,8 @@ public void OnPluginStart() {
     // Register our admin commands
     RegAdminCmd("sm_rw", RemoveWarden, ADMFLAG_GENERIC);
     RegAdminCmd("sm_rc", RemoveWarden, ADMFLAG_GENERIC);
+    
+    CreateTimer(1.0, DisplayCurrentWarden, _, TIMER_REPEAT);
     
     // Hooking the events
     HookEvent("round_start", Event_RoundStart); // For the round start
@@ -81,28 +84,53 @@ public Action BecomeWarden(int iClient, int iArgs) {
             if (IsPlayerAlive(iClient)) { // A dead warden would be worthless >_<
                 SetTheWarden(iClient);
             } else { // Grr he is not alive -.-
-                PrintToChat(iClient, "[Warden] %t", "warden_playerdead");
+                CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_playerdead");
             }
         } else { // Would be wierd if an terrorist would run the prison wouldn't it :p
-            PrintToChat(iClient, "[Warden] %t", "warden_ctsonly");
+            CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_ctsonly");
         }
     } else { // The warden already exist so there is no point setting a new one
-        PrintToChat(iClient, "[Warden] %t", "warden_exist", Warden);
+        CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_exist", Warden);
     }
 }
 
 public Action ExitWarden(int iClient, int iArgs) {
     if(iClient == Warden) { // The iClient is actually the current warden so lets proceed
-        PrintToChatAll("[Warden] %t", "warden_retire", iClient);
+        CPrintToChatAll(TRANSLATION_PREFIX, "warden_retire", iClient);
         if(GetConVarBool(g_cVar_mnotes)) {
-            PrintCenterTextAll("[Warden] %t", "warden_retire", iClient);
-            PrintHintTextToAll("[Warden] %t", "warden_retire", iClient);
+            PrintCenterTextAll(TRANSLATION_PREFIX, "warden_retire", iClient);
+            PrintHintTextToAll(TRANSLATION_PREFIX, "warden_retire", iClient);
         }
         Warden = -1; // Open for a new warden
         SetEntityRenderColor(iClient, 255, 255, 255, 255); // Lets remove the awesome color
     } else { // Fake dude!
-        PrintToChat(iClient, "[Warden] %t", "warden_notwarden");
+        CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
     }
+}
+
+public Action DisplayCurrentWarden(Handle timer) {
+    Handle hudHandle = CreateHudSynchronizer();
+    
+    SetHudTextParams(1.5, -1.7, 1.0, 255, 255, 255, 255);
+    
+    for (int i = 1; i <= MaxClients; i++) {
+        if (IsClientInGame(i)) {
+            char buf[256];
+            
+            if (Warden == -1) {
+                Format(buf, sizeof(buf), "%T   ", "warden_current_none", i);
+            } else {
+                char prefix[128];
+                Format(prefix, sizeof(prefix), "%T", "warden_current", i);
+                Format(buf, sizeof(buf), "%s%N   ", prefix, Warden);
+            }
+            
+            ShowSyncHudText(i, hudHandle, buf);
+        }
+    }
+    
+    CloseHandle(hudHandle);
+    return Plugin_Continue;
 }
 
 public Action Event_RoundStart(Handle event, const char[] name, bool dontBroadcast) {
@@ -113,10 +141,10 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadc
     int iClient = GetClientOfUserId(GetEventInt(event, "userid")); // Get the dead clients id
     
     if(iClient == Warden) { // Aww damn , he is the warden
-        PrintToChatAll("[Warden] %t", "warden_dead", iClient);
+        CPrintToChatAll(TRANSLATION_PREFIX, "warden_dead", iClient);
         if(GetConVarBool(g_cVar_mnotes)) {
-            PrintCenterTextAll("[Warden] %t", "warden_dead", iClient);
-            PrintHintTextToAll("[Warden] %t", "warden_dead", iClient);
+            PrintCenterTextAll(TRANSLATION_PREFIX, "warden_dead", iClient);
+            PrintHintTextToAll(TRANSLATION_PREFIX, "warden_dead", iClient);
         }
         SetEntityRenderColor(iClient, 255, 255, 255, 255); // Lets give him the standard color back
         Warden = -1; // Lets open for a new warden
@@ -125,10 +153,10 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadc
 
 public void OnClientDisconnect(int iClient) {
     if(iClient == Warden) { // The warden disconnected, action!
-        PrintToChatAll("[Warden] %t", "warden_disconnected");
+        CPrintToChatAll(TRANSLATION_PREFIX, "warden_disconnected");
         if(GetConVarBool(g_cVar_mnotes)) {
-            PrintCenterTextAll("[Warden] %t", "warden_disconnected", iClient);
-            PrintHintTextToAll("[Warden] %t", "warden_disconnected", iClient);
+            PrintCenterTextAll(TRANSLATION_PREFIX, "warden_disconnected", iClient);
+            PrintHintTextToAll(TRANSLATION_PREFIX, "warden_disconnected", iClient);
         }
         Warden = -1; // Lets open for a new warden
     }
@@ -138,7 +166,7 @@ public Action RemoveWarden(int iClient, int iArgs) {
     if(Warden != -1) { // Is there an warden at the moment ?
         RemoveTheWarden(iClient);
     } else {
-        PrintToChatAll("[Warden] %t", "warden_noexist");
+        CPrintToChatAll(TRANSLATION_PREFIX, "warden_noexist");
     }
 
     return Plugin_Handled; // Prevent sourcemod from typing "unknown command" in console
@@ -155,7 +183,7 @@ public Action HookPlayerChat(int iClient, const char[] command, int argc) {
         }
         
         if(IsClientInGame(iClient) && IsPlayerAlive(iClient) && GetClientTeam(iClient) == 3) { // Typing warden is alive and his team is Counter-Terrorist
-            PrintToChatAll("[Warden] %N : %s", iClient, szText);
+            CPrintToChatAll("[Warden] %N : %s", iClient, szText);
             return Plugin_Handled;
         }
     }
@@ -165,11 +193,11 @@ public Action HookPlayerChat(int iClient, const char[] command, int argc) {
 
 
 public void SetTheWarden(int iClient) {
-    PrintToChatAll("[Warden] %t", "warden_new", iClient);
+    CPrintToChatAll(TRANSLATION_PREFIX, "warden_new", iClient);
     
     if(GetConVarBool(g_cVar_mnotes)) {
-        PrintCenterTextAll("[Warden] %t", "warden_new", iClient);
-        PrintHintTextToAll("[Warden] %t", "warden_new", iClient);
+        PrintCenterTextAll(TRANSLATION_PREFIX, "warden_new", iClient);
+        PrintHintTextToAll(TRANSLATION_PREFIX, "warden_new", iClient);
     }
     Warden = iClient;
     SetEntityRenderColor(iClient, 0, 0, 255, 255);
@@ -179,10 +207,10 @@ public void SetTheWarden(int iClient) {
 }
 
 public void RemoveTheWarden(int iClient) {
-    PrintToChatAll("[Warden] %t", "warden_removed", iClient, Warden);
+    CPrintToChatAll(TRANSLATION_PREFIX, "warden_removed", iClient, Warden);
     if(GetConVarBool(g_cVar_mnotes)) {
-        PrintCenterTextAll("[Warden] %t", "warden_removed", iClient);
-        PrintHintTextToAll("[Warden] %t", "warden_removed", iClient);
+        PrintCenterTextAll(TRANSLATION_PREFIX, "warden_removed", iClient);
+        PrintHintTextToAll(TRANSLATION_PREFIX, "warden_removed", iClient);
     }
     SetEntityRenderColor(Warden, 255, 255, 255, 255);
     Warden = -1;
