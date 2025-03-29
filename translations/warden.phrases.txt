@@ -3,100 +3,112 @@
 	"warden_new"
 	{
 		"#format"	"{1:N}"
-		"en"		"{1} has become the warden of this prison."
-		"es"		"{1} Es ahora el AlcÃ¡ide de esta PrisiÃ³n."
-		"pt"		"{1} Agora, o diretor da prisão.."
-		"sv"		"{1} har blivit fängelsedirektör över detta fängelse."
-		"ru"		"{1} стал командиром."
+		"en"		"{color:emerald}[Warden] {color:white}{1} has become the warden of this prison."
+		"ru"		"{color:emerald}[КМД] {color:white}{1} стал командиром."
 	}
 	
 	"warden_playerdead"
 	{
 		"#format"	""
-		"en"		"Only alive players may become warden."
-		"es"		"SÃ³lo los jugadores vivos, pueden ser el AlcÃ¡ide."
-		"pt"		"Apenas os jogadores podem viver o diretor.."
-		"sv"		"Endast levande spelare kan bli fängelsedirektör."
-		"ru"		"Только живые могут стать командиром."
+		"en"		"{color:emerald}[Warden] {color:white}Only alive players may become warden."
+		"ru"		"{color:emerald}[КМД] {color:white}Только живые могут стать командиром."
 	}
 	
 	"warden_ctsonly"
 	{
 		"#format"	""
-		"en"		"Only Counter-Terrorists may become warden."
-		"es"		"SÃ³lo los Anti-Terroristas pueden ser el AlcÃ¡ide."
-		"pt"		"Apenas o diretor pode ser AntiTerrorista."
-		"sv"		"Endast Anti-Terrorister kan bli fängelsedirektör."
-		"ru"		"Только спецназ может стать командиром."
+		"en"		"{color:emerald}[Warden] {color:white}Only Counter-Terrorists may become warden."
+		"ru"		"{color:emerald}[КМД] {color:white}Только спецназ может стать командиром."
 	}
 	
 	"warden_exist"
 	{
 		"#format"	"{1:N}"
-		"en"		"current warden is: {1}"
-		"es"		"AlcÃ¡ide Actual: {1}"
-		"pt"		"Atual diretor: {1}"
-		"sv"		"nuvarande fängelsedirektör är: {1}"
-		"ru"		"Текущий командир: {1}"
+		"en"		"{color:emerald}[Warden] {color:white}Current warden is: {1}"
+		"ru"		"{color:emerald}[КМД] {color:white}Текущий командир: {1}"
 	}
 	
 	"warden_retire"
 	{
 		"#format"	"{1:N}"
-		"en"		"{1} has decided to retire. You may now choose a new one."
-		"es"		"{1} ha decidido jubilarse. Ahora toca elegir uno nuevo."
-		"pt"		"{1} o atual diretor, decidiu se aposentar. Agora começa a escolher um novo.."
-		"sv"		"{1} har bestämt sig för att avgå. Ni bör nu välja en ny."
-		"ru"		"{1} решил покинуть пост. Его место можно занять."
+		"en"		"{color:emerald}[Warden] {color:white}{1} has decided to retire. Someone should take his place."
+		"ru"		"{color:emerald}[КМД] {color:white}{1} решил покинуть пост. Кто-то должен занять его место."
 	}
 	
 	"warden_notwarden"
 	{
 		"#format"	""
-		"en"		"You are not the warden and therefore may not retire."
-		"es"		"No eres el AlcÃ¡ide, y no puedes jubilarte."
-		"pt"		"Você não é o diretor, e você não pode se aposentar.."
-		"sv"		"du är inte fängelsedirektören och kan därför inte avgå."
-		"ru"		"Вы не командир и, собственно, не можете покинуть его пост."
+		"en"		"{color:emerald}[Warden] {color:white}You are not the warden."
+		"ru"		"{color:emerald}[КМД] {color:white}Вы не командир."
 	}
 	
 	"warden_dead"
 	{
 		"#format"	""
-		"en"		"the warden are now dead. You may now choose a new one."
-		"es"		"El AlcÃ¡ide ha muerto! Ahora toca elegir uno juevo."
-		"pt"		"O diretor está morto, agora começa a escolher um novo."
-		"sv"		"fängelsedirektören är död. Ni bör nu välja en ny."
-		"ru"		"Командир умер. Его место можно занять."
+		"en"		"{color:emerald}[Warden] {color:white}The warden has died. Someone should take his place."
+		"ru"		"{color:emerald}[КМД] {color:white}Командир умер. Кто-то должен занять его место."
 	}
 	
 	"warden_disconnected"
 	{
 		"#format"	""
-		"en"		"The warden has disconnected. You may now choose a new one."
-		"es"		"El AlcÃ¡ide ha desertado. Ahora toca elegir uno nuevo."
-		"pt"		"O diretor deixou o jogo. Agora começa a escolher um novo."
-		"sv"		"fängelsedirektören har lämnat. Ni bör nu välja en ny."
-		"ru"		"Командир отключился. Его место можно занять."
+		"en"		"{color:emerald}[Warden] {color:white}The warden has disconnected. Someone should take his place."
+		"ru"		"{color:emerald}[КМД] {color:white}Командир отключился. Кто-то должен занять его место."
 	}
 	
 	"warden_removed"
 	{
 		"#format"	"{1:N},{2:N}"
-		"en"		"Admin: {1} fired Warden: {2}"
-		"es"		"Administrador: {1} ha prejubilado al AlcÃ¡ide: {2}"
-		"pt"		"O Administrador do: {1} o diretor se aposentou cedo: {2}"
-		"sv"		"Admin: {1} avskedade Fängelsedirektören: {2}"
-		"ru"		"Администратор: {1} уволил командира: {2}"
+		"en"		"{color:emerald}[Warden] {color:white}Admin {1} has fired Warden {2}"
+		"ru"		"{color:emerald}[КМД] {color:white}Администратор {1} уволил командира {2}"
 	}
 	
 	"warden_noexist"
 	{
 		"#format"	""
-		"en"		"There was no warden to fire."
-		"es"		"Actualmente no existe ningÃºn AlcÃ¡ide en la prisiÃ³n."
-		"pt"		"Atualmente não há carcereiro na prisão."
-		"sv"		"det fanns ingen fängelsedirektör att avskeda."
-		"ru"		"Некого увольнять."
+		"en"		"{color:emerald}[Warden] {color:white}There was no warden to fire."
+		"ru"		"{color:emerald}[КМД] {color:white}Некого увольнять."
+	}
+	
+	"warden_current"
+	{
+		"#format"	"{1:N}"
+		"en"		"Командир: {1}"
+		"ru"		"Warden: {1}"
+	}
+	
+	"warden_current_none"
+	{
+		"#format"	""
+		"en"		"Командира нет"
+		"ru"		"No warden"
+	}
+	
+	"warden_noblock_enabled"
+	{
+		"#format"	""
+		"en"		"{color:emerald}[Warden] {color:white}NoBlock enabled"
+		"ru"		"{color:emerald}[КМД] {color:white}NoBlock включен"
+	}
+	
+	"warden_noblock_disabled"
+	{
+		"#format"	""
+		"en"		"{color:emerald}[Warden] {color:white}NoBlock disabled"
+		"ru"		"{color:emerald}[КМД] {color:white}NoBlock выключен"
+	}
+	
+	"warden_mute"
+	{
+		"#format"	""
+		"en"		"{color:emerald}[Warden] {color:white}Terrorists have been muted for 20 seconds!"
+		"ru"		"{color:emerald}[КМД] {color:white}Заключённые заглушены на 20 секунд!"
+	}
+	
+	"warden_mute_ended"
+	{
+		"#format"	""
+		"en"		"{color:emerald}[Warden] {color:white}Terrorists can now speak again!"
+		"ru"		"{color:emerald}[КМД] {color:white}Заключённые теперь могут разговаривать!"
 	}
 }

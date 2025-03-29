@@ -1,9 +1,9 @@
 # Warden
 Sourcemod plugin for Counter-Strike: Source for jailbreak servers
 
-Originally made by ecca, editied by notfoundname
+Originally made by ecca, editied by notfoundname.
 
-## TODO
-- [X] Compile on new Sourcepawn versions
-- [ ] Extend API
-- [ ] Extend functionality
+# Features
+- Warden (setting, firing)
+- Noblock
+- Translations (en, ru) with colours support

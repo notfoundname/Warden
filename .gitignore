@@ -1,2 +1,7 @@
-*.bak
-*.smx
+*
+!*/
+!warden.sp
+!warden.phrases.txt
+!sourcecolors.inc
+!warden.inc
+!README.md

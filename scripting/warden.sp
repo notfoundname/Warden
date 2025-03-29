@@ -1,14 +1,21 @@
 #include <sourcemod>
 #include <sdktools>
+#include <sourcecolors>
 #tryinclude <warden>
 
 #pragma semicolon 1
 #pragma newdecls required
 
-#define PLUGIN_VERSION   "4.0.0"
+#define PLUGIN_VERSION   "4.1.0"
+#define PLUGIN_PREFIX    "%t"
 
 int Warden = -1;
+bool noblockEnabled = true;
+Handle tempMuteTimer = INVALID_HANDLE;
+
 Handle g_cVar_mnotes = INVALID_HANDLE;
+Handle g_cVar_muteTime = INVALID_HANDLE;
+Handle g_cVar_noblockDefault = INVALID_HANDLE;
 Handle g_hFrwd_OnWardenCreation = INVALID_HANDLE;
 Handle g_hFrwd_OnWardenRemoved = INVALID_HANDLE;
 
@@ -17,7 +24,7 @@ public Plugin myinfo = {
     author = "ecca & notfoundname",
     description = "Updated Jailbreak Warden Plugin",
     version = PLUGIN_VERSION,
-    url = "ffac.eu"
+    url = "ffac.eu & babrcraft.ru"
 };
 
 public void OnPluginStart() {
@@ -34,6 +41,12 @@ public void OnPluginStart() {
     RegConsoleCmd("sm_uc", ExitWarden);
     RegConsoleCmd("sm_uncommander", ExitWarden);
     
+    // Warden specific commands
+    RegConsoleCmd("sm_noblock", ToggleNoblock);
+    RegConsoleCmd("sm_nb", ToggleNoblock);
+    RegConsoleCmd("sm_wmute", TempMute);
+    RegConsoleCmd("sm_wm", TempMute);
+    
     // Laserbeam
     // RegConsoleCmd("sm_lcolor", Command_Lcolor, "Change laser color");
     // RegConsoleCmd("sm_lclear", Command_Lclear, "Clear all lasers")
@@ -45,13 +58,19 @@ public void OnPluginStart() {
     // Hooking the events
     HookEvent("round_start", Event_RoundStart); // For the round start
     HookEvent("player_death", Event_PlayerDeath); // To check when our warden dies :)
+    HookEvent("player_spawn", Event_PlayerSpawn); // Apply stuff like noblock when player spawns
     
     // For our warden to look some extra cool
     AddCommandListener(HookPlayerChat, "say");
     
+    // For displaying current warden on top right
+    CreateTimer(1.0, DisplayCurrentWarden, _, TIMER_REPEAT);
+    
     // May not touch this line
     CreateConVar("sm_warden_version", PLUGIN_VERSION,  "The version of the SourceMod plugin JailBreak Warden, by ecca & notfoundname", FCVAR_SPONLY|FCVAR_DONTRECORD|FCVAR_REPLICATED|FCVAR_NOTIFY);
-    g_cVar_mnotes = CreateConVar("sm_warden_better_notifications", "0", "0 - disabled, 1 - Will use hint and center text", FCVAR_NONE, true, 0.0, true, 1.0);
+    g_cVar_mnotes = CreateConVar("sm_warden_better_notifications", "1", "0 - disabled, 1 - Will use center text", FCVAR_NONE, true, 0.0, true, 1.0);
+    g_cVar_muteTime = CreateConVar("sm_warden_mute_time", "1.0", "How long temp mute will last.", FCVAR_NONE, true, 1.0, true, 60.0);
+	g_cVar_noblockDefault = CreateConVar("sm_warden_noblock_default", "1", "0 - disabled, 1 - enabled (players have no collision)", FCVAR_NONE, true, 0.0, true, 1.0);
 }
 
 void CreateNatives() {
@@ -81,64 +100,123 @@ public Action BecomeWarden(int iClient, int iArgs) {
             if (IsPlayerAlive(iClient)) { // A dead warden would be worthless >_<
                 SetTheWarden(iClient);
             } else { // Grr he is not alive -.-
-                PrintToChat(iClient, "[Warden] %t", "warden_playerdead");
+                CPrintToChat(iClient, PLUGIN_PREFIX, "warden_playerdead");
             }
         } else { // Would be wierd if an terrorist would run the prison wouldn't it :p
-            PrintToChat(iClient, "[Warden] %t", "warden_ctsonly");
+            CPrintToChat(iClient, PLUGIN_PREFIX, "warden_ctsonly");
         }
     } else { // The warden already exist so there is no point setting a new one
-        PrintToChat(iClient, "[Warden] %t", "warden_exist", Warden);
+        CPrintToChat(iClient, PLUGIN_PREFIX, "warden_exist", Warden);
     }
+    return Plugin_Continue;
 }
 
 public Action ExitWarden(int iClient, int iArgs) {
-    if(iClient == Warden) { // The iClient is actually the current warden so lets proceed
-        PrintToChatAll("[Warden] %t", "warden_retire", iClient);
-        if(GetConVarBool(g_cVar_mnotes)) {
-            PrintCenterTextAll("[Warden] %t", "warden_retire", iClient);
-            PrintHintTextToAll("[Warden] %t", "warden_retire", iClient);
+    if (iClient == Warden) { // The iClient is actually the current warden so lets proceed
+        CPrintToChatAll(PLUGIN_PREFIX, "warden_retire", iClient);
+        if (GetConVarBool(g_cVar_mnotes)) {
+            PrintCenterTextAll(PLUGIN_PREFIX, "warden_current_none");
         }
         Warden = -1; // Open for a new warden
         SetEntityRenderColor(iClient, 255, 255, 255, 255); // Lets remove the awesome color
     } else { // Fake dude!
-        PrintToChat(iClient, "[Warden] %t", "warden_notwarden");
+        CPrintToChat(iClient, PLUGIN_PREFIX, "warden_notwarden");
     }
+    return Plugin_Continue;
+}
+
+public Action ToggleNoblock(int iClient, int iArgs) {
+    if (iClient == Warden) { // The iClient is the warden
+        noblockEnabled = !noblockEnabled;
+        for (int i = 1; i <= MaxClients; i++) {
+            PlayerApplyNoblock(i, true);
+        }
+    }
+    return Plugin_Continue;
+}
+
+public Action TempMute(int iClient, int iArgs) {
+    if (iClient == Warden) { // The iClient is the warden
+        
+    }
+    return Plugin_Continue;
+}
+
+public void PlayerApplyMute(int iClient) {
+    
+}
+
+public Action DisplayCurrentWarden(Handle timer) {
+    Handle h_hud_text = CreateHudSynchronizer();
+    
+    SetHudTextParams(1.5, -1.7, 1.0, 255, 255, 255, 255);
+    
+    for (int i = 1; i <= MaxClients; i++) {
+        if (IsClientInGame(i)) {
+            char buf[256];
+            
+            if (Warden == -1) {
+                Format(buf, sizeof(buf), "%T   ", "warden_current_none", i);
+            } else {
+                char prefix[128];
+                Format(prefix, sizeof(prefix), "%T", "warden_current", i);
+                Format(buf, sizeof(buf), "%s%N   ", prefix, Warden);
+            }
+            
+            ShowSyncHudText(i, h_hud_text, buf);
+        }
+    }
+    
+    CloseHandle(h_hud_text);
+    return Plugin_Continue;
 }
 
 public Action Event_RoundStart(Handle event, const char[] name, bool dontBroadcast) {
     Warden = -1; // Lets remove the current warden if he exist
+	
+    noblockEnabled = GetConVarBool(g_cVar_noblockDefault);
+	for (int i = 1; i <= MaxClients; i++) {
+        PlayerApplyNoblock(i, false);
+    }
+	
+    return Plugin_Continue;
 }
 
 public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadcast) {
     int iClient = GetClientOfUserId(GetEventInt(event, "userid")); // Get the dead clients id
     
-    if(iClient == Warden) { // Aww damn , he is the warden
-        PrintToChatAll("[Warden] %t", "warden_dead", iClient);
-        if(GetConVarBool(g_cVar_mnotes)) {
-            PrintCenterTextAll("[Warden] %t", "warden_dead", iClient);
-            PrintHintTextToAll("[Warden] %t", "warden_dead", iClient);
+    if (iClient == Warden) { // Aww damn , he is the warden
+        CPrintToChatAll(PLUGIN_PREFIX, "warden_dead", iClient);
+        if (GetConVarBool(g_cVar_mnotes)) {
+            PrintCenterTextAll(PLUGIN_PREFIX, "warden_current_none");
         }
         SetEntityRenderColor(iClient, 255, 255, 255, 255); // Lets give him the standard color back
         Warden = -1; // Lets open for a new warden
     }
+    return Plugin_Continue;
+}
+
+public Action Event_PlayerSpawn(Handle event, const char[] name, bool dontBroadcast) {
+    int iClient = GetClientOfUserId(GetEventInt(event, "userid")); // Get the clients id
+    PlayerApplyNoblock(iClient, false);
+    return Plugin_Continue;
 }
 
 public void OnClientDisconnect(int iClient) {
-    if(iClient == Warden) { // The warden disconnected, action!
-        PrintToChatAll("[Warden] %t", "warden_disconnected");
-        if(GetConVarBool(g_cVar_mnotes)) {
-            PrintCenterTextAll("[Warden] %t", "warden_disconnected", iClient);
-            PrintHintTextToAll("[Warden] %t", "warden_disconnected", iClient);
+    if (iClient == Warden) { // The warden disconnected, action!
+        CPrintToChatAll(PLUGIN_PREFIX, "warden_disconnected");
+        if (GetConVarBool(g_cVar_mnotes)) {
+            PrintCenterTextAll(PLUGIN_PREFIX, "warden_current_none");
         }
         Warden = -1; // Lets open for a new warden
     }
 }
 
 public Action RemoveWarden(int iClient, int iArgs) {
-    if(Warden != -1) { // Is there an warden at the moment ?
+    if (Warden != -1) { // Is there an warden at the moment ?
         RemoveTheWarden(iClient);
     } else {
-        PrintToChatAll("[Warden] %t", "warden_noexist");
+        CPrintToChatAll(PLUGIN_PREFIX, "warden_noexist");
     }
 
     return Plugin_Handled; // Prevent sourcemod from typing "unknown command" in console
@@ -146,16 +224,16 @@ public Action RemoveWarden(int iClient, int iArgs) {
 
 
 public Action HookPlayerChat(int iClient, const char[] command, int argc) {
-    if(Warden == iClient && iClient != 0) { // Check so the player typing is warden and also checking so the client isn't console!
+    if (Warden == iClient && iClient != 0) { // Check so the player typing is warden and also checking so the client isn't console!
         char szText[256];
         GetCmdArg(1, szText, sizeof(szText));
         
-        if(szText[0] == '/' || szText[0] == '@' || IsChatTrigger()) { // Prevent unwanted text to be displayed.
+        if (szText[0] == '/' || szText[0] == '@' || IsChatTrigger()) { // Prevent unwanted text to be displayed.
             return Plugin_Handled;
         }
         
-        if(IsClientInGame(iClient) && IsPlayerAlive(iClient) && GetClientTeam(iClient) == 3) { // Typing warden is alive and his team is Counter-Terrorist
-            PrintToChatAll("[Warden] %N : %s", iClient, szText);
+        if (IsClientInGame(iClient) && IsPlayerAlive(iClient) && GetClientTeam(iClient) == 3) { // Typing warden is alive and his team is Counter-Terrorist
+            CPrintToChatAll("[Warden] %N : %s", iClient, szText);
             return Plugin_Handled;
         }
     }
@@ -165,26 +243,31 @@ public Action HookPlayerChat(int iClient, const char[] command, int argc) {
 
 
 public void SetTheWarden(int iClient) {
-    PrintToChatAll("[Warden] %t", "warden_new", iClient);
+    CPrintToChatAll(PLUGIN_PREFIX, "warden_new", iClient);
     
-    if(GetConVarBool(g_cVar_mnotes)) {
-        PrintCenterTextAll("[Warden] %t", "warden_new", iClient);
-        PrintHintTextToAll("[Warden] %t", "warden_new", iClient);
+    if (GetConVarBool(g_cVar_mnotes)) {
+        for (int i = 1; i < MaxClients; i++) {
+            PrintCenterText(i, "%t", "warden_current", iClient);
+        }
     }
+    
     Warden = iClient;
-    SetEntityRenderColor(iClient, 0, 0, 255, 255);
+    //SetEntityRenderColor(iClient, 0, 0, 255, 255);
     SetClientListeningFlags(iClient, VOICE_NORMAL);
     
     Forward_OnWardenCreation(iClient);
 }
 
 public void RemoveTheWarden(int iClient) {
-    PrintToChatAll("[Warden] %t", "warden_removed", iClient, Warden);
-    if(GetConVarBool(g_cVar_mnotes)) {
-        PrintCenterTextAll("[Warden] %t", "warden_removed", iClient);
-        PrintHintTextToAll("[Warden] %t", "warden_removed", iClient);
+    CPrintToChatAll(PLUGIN_PREFIX, "warden_removed", iClient, Warden);
+    
+    if (GetConVarBool(g_cVar_mnotes)) {
+        for (int i = 1; i < MaxClients; i++) {
+            PrintCenterText(i, "%t", "warden_current_none");
+        }
     }
-    SetEntityRenderColor(Warden, 255, 255, 255, 255);
+    
+    //SetEntityRenderColor(Warden, 255, 255, 255, 255);
     Warden = -1;
     
     Forward_OnWardenRemoved(iClient);
@@ -197,7 +280,7 @@ public int Native_ExistWarden(Handle hPlugin, int iParams) {
 public int Native_IsWarden(Handle hPlugin, int iParams) {
     int iClient = GetNativeCell(1);
     
-    if(!IsClientInGame(iClient) && !IsClientConnected(iClient))
+    if (!IsClientInGame(iClient) && !IsClientConnected(iClient))
         ThrowNativeError(SP_ERROR_INDEX, "Client index %i is invalid", iClient);
     
     return iClient == Warden;
@@ -209,9 +292,10 @@ public int Native_SetWarden(Handle hPlugin, int iParams) {
     if (!IsClientInGame(iClient) && !IsClientConnected(iClient))
         ThrowNativeError(SP_ERROR_INDEX, "Client index %i is invalid", iClient);
     
-    if(Warden == -1) {
+    if (Warden == -1) {
         SetTheWarden(iClient);
     }
+    return 0;
 }
 
 public int Native_RemoveWarden(Handle hPlugin, int iParams) {
@@ -220,9 +304,10 @@ public int Native_RemoveWarden(Handle hPlugin, int iParams) {
     if (!IsClientInGame(iClient) && !IsClientConnected(iClient))
         ThrowNativeError(SP_ERROR_INDEX, "Client index %i is invalid", iClient);
     
-    if(iClient == Warden) {
+    if (iClient == Warden) {
         RemoveTheWarden(iClient);
     }
+    return 0;
 }
 
 public void Forward_OnWardenCreation(int iClient) {
@@ -235,4 +320,18 @@ public void Forward_OnWardenRemoved(int iClient) {
     Call_StartForward(g_hFrwd_OnWardenRemoved);
     Call_PushCell(iClient);
     Call_Finish();
+}
+
+public void PlayerApplyNoblock(int iClient, bool command) {
+    if (noblockEnabled) {
+        SetEntityCollisionGroup(iClient, 2); // COLLISION_GROUP_DEBRIS_TRIGGER
+        if (command) {
+            CPrintToChat(iClient, PLUGIN_PREFIX, "warden_noblock_enabled");
+        }
+    } else {
+        SetEntityCollisionGroup(iClient, 5); // COLLISION_GROUP_PLAYER
+        if (command) {
+            CPrintToChat(iClient, PLUGIN_PREFIX, "warden_noblock_disabled");
+        }
+    }
 }
