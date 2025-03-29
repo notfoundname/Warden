@@ -3,112 +3,105 @@
 	"warden_new"
 	{
 		"#format"	"{1:N}"
-		"en"		"{color:white}{1} has become the warden of this prison."
-		"ru"		"{color:white}{1} стал командиром."
+		"en"		"{1} is now the warden."
+		"ru"		"{1} стал командиром."
 	}
 	
 	"warden_playerdead"
 	{
 		"#format"	""
-		"en"		"{color:white}Only alive players may become warden."
-		"ru"		"{color:white}Только живые могут стать командиром."
+		"en"		"Only alive players may become warden!"
+		"ru"		"Только живые могут стать командиром!"
 	}
 	
 	"warden_ctsonly"
 	{
 		"#format"	""
-		"en"		"{color:white}Only Counter-Terrorists may become warden."
-		"ru"		"{color:white}Только спецназ может стать командиром."
+		"en"		"Only Counter-Terrorists may become warden."
+		"ru"		"Только спецназ может стать командиром."
 	}
 	
 	"warden_exist"
-	{
-		"#format"	"{1:N}"
-		"en"		"{color:white}Current warden is: {1}"
-		"ru"		"{color:white}Текущий командир: {1}"
-	}
-	
-	"warden_retire"
-	{
-		"#format"	"{1:N}"
-		"en"		"{color:white}{1} has decided to retire. Someone should take his place."
-		"ru"		"{color:white}{1} решил покинуть пост. Кто-то должен занять его место."
-	}
-	
-	"warden_notwarden"
-	{
-		"#format"	""
-		"en"		"{color:white}You are not the warden."
-		"ru"		"{color:white}Вы не командир."
-	}
-	
-	"warden_dead"
-	{
-		"#format"	""
-		"en"		"{color:white}The warden has died. Someone should take his place."
-		"ru"		"{color:white}Командир умер. Кто-то должен занять его место."
-	}
-	
-	"warden_disconnected"
-	{
-		"#format"	""
-		"en"		"{color:white}The warden has disconnected. Someone should take his place."
-		"ru"		"{color:white}Командир отключился. Кто-то должен занять его место."
-	}
-	
-	"warden_removed"
-	{
-		"#format"	"{1:N},{2:N}"
-		"en"		"{color:white}Admin {1} has fired Warden {2}"
-		"ru"		"{color:white}Администратор {1} уволил командира {2}"
-	}
-	
-	"warden_noexist"
-	{
-		"#format"	""
-		"en"		"{color:white}There was no warden to fire."
-		"ru"		"{color:white}Некого увольнять."
-	}
-	
-	"warden_current"
 	{
 		"#format"	"{1:N}"
 		"en"		"Warden: {1}"
 		"ru"		"Командир: {1}"
 	}
 	
-	"warden_current_none"
+	"warden_missing"
 	{
 		"#format"	""
-		"en"		"No warden!"
+		"en"		"Warden missing!"
 		"ru"		"Командира нет!"
+	}
+	
+	"warden_retire"
+	{
+		"#format"	"{1:N}"
+		"en"		"{1} has decided to retire!"
+		"ru"		"{1} решил покинуть пост!"
+	}
+	
+	"warden_notwarden"
+	{
+		"#format"	""
+		"en"		"You are not the warden!"
+		"ru"		"Вы не командир!"
+	}
+	
+	"warden_dead"
+	{
+		"#format"	""
+		"en"		"The warden has died!"
+		"ru"		"Командир умер!"
+	}
+	
+	"warden_disconnected"
+	{
+		"#format"	""
+		"en"		"The warden has disconnected!"
+		"ru"		"Командир отключился!"
+	}
+	
+	"warden_removed"
+	{
+		"#format"	"{1:N},{2:N}"
+		"en"		"Admin {1} has fired Warden {2}."
+		"ru"		"Администратор {1} уволил командира {2}."
+	}
+	
+	"warden_noexist"
+	{
+		"#format"	""
+		"en"		"There was no warden to fire."
+		"ru"		"Некого увольнять."
 	}
 	
 	"warden_noblock_enabled"
 	{
 		"#format"	""
-		"en"		"{color:white}NoBlock enabled"
-		"ru"		"{color:white}NoBlock включен"
+		"en"		"NoBlock enabled."
+		"ru"		"NoBlock включен."
 	}
 	
 	"warden_noblock_disabled"
 	{
 		"#format"	""
-		"en"		"{color:white}NoBlock disabled"
-		"ru"		"{color:white}NoBlock выключен"
+		"en"		"NoBlock disabled."
+		"ru"		"NoBlock выключен."
 	}
 	
 	"warden_mute"
 	{
 		"#format"	""
-		"en"		"{color:white}Terrorists have been muted for 20 seconds!"
-		"ru"		"{color:white}Заключённые заглушены на 20 секунд!"
+		"en"		"Terrorists have been muted for 20 seconds!"
+		"ru"		"Заключённые заглушены на 20 секунд!"
 	}
 	
 	"warden_mute_ended"
 	{
 		"#format"	""
-		"en"		"{color:white}Terrorists can now speak again!"
-		"ru"		"{color:white}Заключённые теперь могут разговаривать!"
+		"en"		"Terrorists can now speak again!"
+		"ru"		"Заключённые теперь могут разговаривать!"
 	}
 }
