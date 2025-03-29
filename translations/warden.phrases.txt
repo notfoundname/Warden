@@ -51,9 +51,9 @@
 	
 	"warden_dead"
 	{
-		"#format"	""
-		"en"		"The warden has died!"
-		"ru"		"Командир умер!"
+		"#format"	"{1:N}"
+		"en"		"The warden {1} has died!"
+		"ru"		"Командир {1} умер!"
 	}
 	
 	"warden_disconnected"

@@ -117,12 +117,12 @@ public Action DisplayCurrentWarden(Handle timer) {
         if (IsClientInGame(i)) {
             char buf[256];
             
-            if (Warden == -1) {
-                Format(buf, sizeof(buf), "%t   ", "warden_missing");
-            } else {
+            if (Warden != -1) {
                 char prefix[128];
-                Format(prefix, sizeof(prefix), "%t", "warden_exist", Warden);
-                Format(buf, sizeof(buf), "%s%N   ", prefix);
+                Format(prefix, sizeof(prefix), "%T", "warden_exist", i);
+                Format(buf, sizeof(buf), "%s%N   ", prefix, Warden);
+            } else {
+                Format(buf, sizeof(buf), "%t   ", "warden_missing");
             }
             
             ShowSyncHudText(i, hudHandle, buf);
@@ -141,9 +141,9 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadc
     int iClient = GetClientOfUserId(GetEventInt(event, "userid")); // Get the dead clients id
     
     if (iClient == Warden) { // Aww damn , he is the warden
-        CPrintToChatAll(TRANSLATION_PREFIX, "warden_dead", iClient);
+        CPrintToChatAll(TRANSLATION_PREFIX, "warden_dead", Warden);
         if (GetConVarBool(g_cVar_mnotes)) {
-            PrintCenterTextAll("%t", "warden_dead", iClient);
+            PrintCenterTextAll("%t", "warden_dead", Warden);
         }
         SetEntityRenderColor(iClient, 255, 255, 255, 255); // Lets give him the standard color back
         Warden = -1; // Lets open for a new warden
@@ -154,7 +154,7 @@ public void OnClientDisconnect(int iClient) {
     if (iClient == Warden) { // The warden disconnected, action!
         CPrintToChatAll(TRANSLATION_PREFIX, "warden_disconnected");
         if (GetConVarBool(g_cVar_mnotes)) {
-            PrintCenterTextAll("%t", "warden_disconnected", iClient);
+            PrintCenterTextAll("%t", "warden_disconnected");
         }
         Warden = -1; // Lets open for a new warden
     }
@@ -181,7 +181,7 @@ public Action HookPlayerChat(int iClient, const char[] command, int argc) {
         }
         
         if (IsClientInGame(iClient) && IsPlayerAlive(iClient) && GetClientTeam(iClient) == 3) { // Typing warden is alive and his team is Counter-Terrorist
-            CPrintToChatAll("[Warden] %N : %s", iClient, szText);
+            CPrintToChatAll("[Warden] \x07009ED3%N: \x07FFFFFF%s", iClient, szText);
             return Plugin_Handled;
         }
     }
@@ -196,7 +196,7 @@ public void SetTheWarden(int iClient) {
     if (GetConVarBool(g_cVar_mnotes)) {
         PrintCenterTextAll("%t", "warden_new", iClient);
     }
-	
+    
     Warden = iClient;
     SetEntityRenderColor(iClient, 0, 0, 255, 255);
     SetClientListeningFlags(iClient, VOICE_NORMAL);
@@ -209,7 +209,7 @@ public void RemoveTheWarden(int iClient) {
     if (GetConVarBool(g_cVar_mnotes)) {
         PrintCenterTextAll("%t", "warden_removed", iClient, Warden);
     }
-	
+    
     SetEntityRenderColor(Warden, 255, 255, 255, 255);
     Warden = -1;
     
