@@ -118,9 +118,7 @@ public Action DisplayCurrentWarden(Handle timer) {
             char buf[256];
             
             if (Warden != -1) {
-                char prefix[128];
-                Format(prefix, sizeof(prefix), "%T", "warden_exist", i);
-                Format(buf, sizeof(buf), "%s%N   ", prefix, Warden);
+                Format(buf, sizeof(buf), "%t   ", "warden_exist", Warden);
             } else {
                 Format(buf, sizeof(buf), "%t   ", "warden_missing");
             }
