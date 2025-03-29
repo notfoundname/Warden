@@ -58,7 +58,6 @@ public void OnPluginStart() {
     // Hooking the events
     HookEvent("round_start", Event_RoundStart); // For the round start
     HookEvent("player_death", Event_PlayerDeath); // To check when our warden dies :)
-    HookEvent("player_spawn", Event_PlayerSpawn); // Apply stuff like noblock when player spawns
     
     // For our warden to look some extra cool
     AddCommandListener(HookPlayerChat, "say");
@@ -70,7 +69,7 @@ public void OnPluginStart() {
     CreateConVar("sm_warden_version", PLUGIN_VERSION,  "The version of the SourceMod plugin JailBreak Warden, by ecca & notfoundname", FCVAR_SPONLY|FCVAR_DONTRECORD|FCVAR_REPLICATED|FCVAR_NOTIFY);
     g_cVar_mnotes = CreateConVar("sm_warden_better_notifications", "1", "0 - disabled, 1 - Will use center text", FCVAR_NONE, true, 0.0, true, 1.0);
     g_cVar_muteTime = CreateConVar("sm_warden_mute_time", "1.0", "How long temp mute will last.", FCVAR_NONE, true, 1.0, true, 60.0);
-	g_cVar_noblockDefault = CreateConVar("sm_warden_noblock_default", "1", "0 - disabled, 1 - enabled (players have no collision)", FCVAR_NONE, true, 0.0, true, 1.0);
+    g_cVar_noblockDefault = CreateConVar("sm_warden_noblock_default", "1", "0 - disabled, 1 - enabled (players have no collision)", FCVAR_NONE, true, 0.0, true, 1.0);
 }
 
 void CreateNatives() {
@@ -108,7 +107,8 @@ public Action BecomeWarden(int iClient, int iArgs) {
     } else { // The warden already exist so there is no point setting a new one
         CPrintToChat(iClient, PLUGIN_PREFIX, "warden_exist", Warden);
     }
-    return Plugin_Continue;
+    
+    return Plugin_Handled;
 }
 
 public Action ExitWarden(int iClient, int iArgs) {
@@ -122,7 +122,8 @@ public Action ExitWarden(int iClient, int iArgs) {
     } else { // Fake dude!
         CPrintToChat(iClient, PLUGIN_PREFIX, "warden_notwarden");
     }
-    return Plugin_Continue;
+    
+    return Plugin_Handled;
 }
 
 public Action ToggleNoblock(int iClient, int iArgs) {
@@ -132,14 +133,16 @@ public Action ToggleNoblock(int iClient, int iArgs) {
             PlayerApplyNoblock(i, true);
         }
     }
-    return Plugin_Continue;
+    
+    return Plugin_Handled;
 }
 
 public Action TempMute(int iClient, int iArgs) {
     if (iClient == Warden) { // The iClient is the warden
         
     }
-    return Plugin_Continue;
+    
+    return Plugin_Handled;
 }
 
 public void PlayerApplyMute(int iClient) {
@@ -173,12 +176,6 @@ public Action DisplayCurrentWarden(Handle timer) {
 
 public Action Event_RoundStart(Handle event, const char[] name, bool dontBroadcast) {
     Warden = -1; // Lets remove the current warden if he exist
-	
-    noblockEnabled = GetConVarBool(g_cVar_noblockDefault);
-	for (int i = 1; i <= MaxClients; i++) {
-        PlayerApplyNoblock(i, false);
-    }
-	
     return Plugin_Continue;
 }
 
@@ -193,13 +190,12 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadc
         SetEntityRenderColor(iClient, 255, 255, 255, 255); // Lets give him the standard color back
         Warden = -1; // Lets open for a new warden
     }
+    
     return Plugin_Continue;
 }
 
-public Action Event_PlayerSpawn(Handle event, const char[] name, bool dontBroadcast) {
-    int iClient = GetClientOfUserId(GetEventInt(event, "userid")); // Get the clients id
+public void OnClientConnected(int iClient) {
     PlayerApplyNoblock(iClient, false);
-    return Plugin_Continue;
 }
 
 public void OnClientDisconnect(int iClient) {
@@ -295,7 +291,6 @@ public int Native_SetWarden(Handle hPlugin, int iParams) {
     if (Warden == -1) {
         SetTheWarden(iClient);
     }
-    return 0;
 }
 
 public int Native_RemoveWarden(Handle hPlugin, int iParams) {

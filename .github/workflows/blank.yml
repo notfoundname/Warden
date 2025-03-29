@@ -34,4 +34,3 @@ jobs:
             !.git
             !.github
             !.gitignore
-            !README.md
