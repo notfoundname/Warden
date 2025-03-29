@@ -1,5 +1,6 @@
 #include <sourcemod>
 #include <sdktools>
+#include <sourcecolors>
 #tryinclude <warden>
 
 #pragma semicolon 1
