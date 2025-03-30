@@ -45,8 +45,8 @@ public void OnPluginStart() {
     // Warden private commands
     RegConsoleCmd("sm_noblock", ToggleNoblock);
     RegConsoleCmd("sm_nb", ToggleNoblock);
-    RegConsoleCmd("sm_wmute", TempMute);
-    RegConsoleCmd("sm_wm", TempMute);
+    //RegConsoleCmd("sm_wmute", TempMute);
+    //RegConsoleCmd("sm_wm", TempMute);
     
     // Laserbeam
     // RegConsoleCmd("sm_lcolor", Command_Lcolor, "Change laser color");
