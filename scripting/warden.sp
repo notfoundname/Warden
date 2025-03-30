@@ -10,7 +10,13 @@
 #define TRANSLATION_PREFIX "[Warden] \x07FFFFFF%t"
 
 int Warden = -1;
+
+bool noblockEnabled = true;
+
 Handle g_cVar_mnotes = INVALID_HANDLE;
+Handle g_cVar_muteTime = INVALID_HANDLE;
+Handle g_cVar_noblockDefault = INVALID_HANDLE;
+
 Handle g_hFrwd_OnWardenCreation = INVALID_HANDLE;
 Handle g_hFrwd_OnWardenRemoved = INVALID_HANDLE;
 
@@ -19,7 +25,7 @@ public Plugin myinfo = {
     author = "ecca & notfoundname",
     description = "Updated Jailbreak Warden Plugin",
     version = PLUGIN_VERSION,
-    url = "ffac.eu"
+    url = "ffac.eu & babrcraft.ru"
 };
 
 public void OnPluginStart() {
@@ -35,6 +41,12 @@ public void OnPluginStart() {
     RegConsoleCmd("sm_commander", BecomeWarden);
     RegConsoleCmd("sm_uc", ExitWarden);
     RegConsoleCmd("sm_uncommander", ExitWarden);
+    
+    // Warden private commands
+    RegConsoleCmd("sm_noblock", ToggleNoblock);
+    RegConsoleCmd("sm_nb", ToggleNoblock);
+    RegConsoleCmd("sm_wmute", TempMute);
+    RegConsoleCmd("sm_wm", TempMute);
     
     // Laserbeam
     // RegConsoleCmd("sm_lcolor", Command_Lcolor, "Change laser color");
@@ -55,7 +67,10 @@ public void OnPluginStart() {
     
     // May not touch this line
     CreateConVar("sm_warden_version", PLUGIN_VERSION,  "The version of the SourceMod plugin JailBreak Warden, by ecca & notfoundname", FCVAR_SPONLY|FCVAR_DONTRECORD|FCVAR_REPLICATED|FCVAR_NOTIFY);
+    
     g_cVar_mnotes = CreateConVar("sm_warden_better_notifications", "1", "0 - disabled, 1 - Will use center text", FCVAR_NONE, true, 0.0, true, 1.0);
+    g_cVar_muteTime = CreateConVar("sm_warden_mute_time", "20", "For how long warden can mute players?", FCVAR_NONE, true, 5.0, true, 60.0);
+    g_cVar_noblockDefault = CreateConVar("sm_warden_noblock_default", "1", "0 - start with player collisions, 1 - start with no collisions", FCVAR_NONE, true, 0.0, true, 1.0);
 }
 
 void CreateNatives() {
@@ -87,7 +102,7 @@ public Action BecomeWarden(int iClient, int iArgs) {
             } else { // Grr he is not alive -.-
                 CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_playerdead");
             }
-        } else { // Would be wierd if an terrorist would run the prison wouldn't it :p
+        } else { // Would be weird if an terrorist would run the prison wouldn't it :p
             CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_ctsonly");
         }
     } else { // The warden already exist so there is no point setting a new one
@@ -116,13 +131,11 @@ public Action DisplayCurrentWarden(Handle timer) {
     for (int i = 1; i <= MaxClients; i++) {
         if (IsClientInGame(i)) {
             char buf[256];
-            
             if (Warden != -1) {
                 Format(buf, sizeof(buf), "%t   ", "warden_exist", Warden);
             } else {
                 Format(buf, sizeof(buf), "%t   ", "warden_missing");
             }
-            
             ShowSyncHudText(i, hudHandle, buf);
         }
     }
@@ -131,8 +144,36 @@ public Action DisplayCurrentWarden(Handle timer) {
     return Plugin_Continue;
 }
 
+public Action ToggleNoblock(int iClient, int iArgs) {
+    if (iClient == Warden) { // The iClient is the warden
+        noblockEnabled = !noblockEnabled;
+        for (int i = 1; i <= MaxClients; i++) {
+            PlayerApplyNoblock(i, true);
+        }
+    }
+    return Plugin_Handled;
+}
+
+public void PlayerApplyNoblock(int iClient, bool command) {
+    if (noblockEnabled) {
+        SetEntityCollisionGroup(iClient, 2); // COLLISION_GROUP_DEBRIS_TRIGGER
+        if (command) {
+            CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_noblock_enabled");
+        }
+    } else {
+        SetEntityCollisionGroup(iClient, 5); // COLLISION_GROUP_PLAYER
+        if (command) {
+            CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_noblock_disabled");
+        }
+    }
+}
+
 public Action Event_RoundStart(Handle event, const char[] name, bool dontBroadcast) {
     Warden = -1; // Lets remove the current warden if he exist
+    noblockEnabled = GetConVarBool(g_cVar_noblockDefault);
+    for (int i = 1; i <= MaxClients; i++) {
+        PlayerApplyNoblock(i, false);
+    }
 }
 
 public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadcast) {
@@ -179,7 +220,7 @@ public Action HookPlayerChat(int iClient, const char[] command, int argc) {
         }
         
         if (IsClientInGame(iClient) && IsPlayerAlive(iClient) && GetClientTeam(iClient) == 3) { // Typing warden is alive and his team is Counter-Terrorist
-            CPrintToChatAll("[Warden] \x07009ED3%N: \x07FFFFFF%s", iClient, szText);
+            CPrintToChatAll("[Warden] \x0799CCFF%N\x07FFFFFF: %s", iClient, szText);
             return Plugin_Handled;
         }
     }

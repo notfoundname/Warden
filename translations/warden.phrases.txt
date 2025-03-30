@@ -104,4 +104,46 @@
 		"en"		"Terrorists can now speak again!"
 		"ru"		"Заключённые теперь могут разговаривать!"
 	}
+	
+	"warden_menu_title"
+	{
+		"#format"	""
+		"en"		"Warden Menu"
+		"ru"		"Меню Командира"
+	}
+	
+	"warden_menu_noblock"
+	{
+		"#format"	""
+		"en"		"Toggle Noblock"
+		"ru"		"Переключ ноблок"
+	}
+	
+	"warden_menu_ff"
+	{
+		"#format"	""
+		"en"		"Toggle FF"
+		"ru"		"Переключ ФФ"
+	}
+	
+	"warden_menu_medkit"
+	{
+		"#format"	""
+		"en"		"Spawn Medkit"
+		"ru"		"Выдать Аптечку"
+	}
+	
+	"warden_menu_mute"
+	{
+		"#format"	"{1:i}"
+		"en"		"Mute For {1}s"
+		"ru"		"Замутить На {1}с"
+	}
+	
+	"warden_menu_retire"
+	{
+		"#format"	""
+		"en"		"Retire"
+		"ru"		"Уволиться"
+	}
 }
