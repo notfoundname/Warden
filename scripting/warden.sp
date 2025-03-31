@@ -1,3 +1,4 @@
+#include <basecomm>
 #include <sourcemod>
 #include <sdktools>
 #include <sourcecolors>
@@ -151,7 +152,9 @@ public Action ToggleNoblock(int iClient, int iArgs) {
     if (iClient == Warden) { // Make sure executor is the Warden
         noblockEnabled = !noblockEnabled;
         for (int i = 1; i <= MaxClients; i++) {
-            PlayerApplyNoblock(i, true);
+            if (IsClientInGame(i)) {
+                PlayerApplyNoblock(i, true);
+            }
         }
     } else {
         CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
@@ -177,15 +180,18 @@ public void PlayerApplyNoblock(int iClient, bool command) {
 public Action TempMute(int iClient, int iArgs) {
     if (iClient == Warden) { // Make sure executor is the Warden
         if (muteTimer != null) { // If the timer is active then force it to trigger
-            TriggerTimer(muteTimer, false);
+            TriggerTimer(muteTimer, true);
             return Plugin_Handled;
         }
         muteTimer = CreateTimer(GetConVarFloat(g_cVar_muteTime), TempMuteTimer);
         for (int i = 1; i <= MaxClients; i++) {
             CPrintToChat(i, TRANSLATION_PREFIX, "warden_mute", GetConVarInt(g_cVar_muteTime));
-            if (GetClientTeam(i) == 2) { // Mute all Terrorists
-                SetClientListeningFlags(i, VOICE_MUTED);
+            if (IsClientInGame(i)) {
+                if (GetClientTeam(i) == 2 && !BaseComm_IsClientMuted(client)) { // Mute all Terrorists
+                    SetClientListeningFlags(i, VOICE_MUTED);
+                }
             }
+            
         }
     } else {
         CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
@@ -197,10 +203,13 @@ public Action TempMute(int iClient, int iArgs) {
 public Action TempMuteTimer(Handle timer) {
     for (int i = 1; i <= MaxClients; i++) {
         CPrintToChat(i, TRANSLATION_PREFIX, "warden_mute_ended", GetConVarInt(g_cVar_muteTime));
-        if (GetClientTeam(i) == 2) { // Unmute all Terrorists
-            SetClientListeningFlags(i, VOICE_NORMAL);
+        if (IsClientInGame(i)) {
+            if (GetClientTeam(i) == 2  && !BaseComm_IsClientMuted(client)) { // Unmute all Terrorists
+                SetClientListeningFlags(i, VOICE_NORMAL);
+            }
         }
     }
+    muteTimer = null;
 }
 
 public Action Event_RoundStart(Handle event, const char[] name, bool dontBroadcast) {
@@ -212,7 +221,7 @@ public Action Event_RoundStart(Handle event, const char[] name, bool dontBroadca
     }
     
     if (muteTimer != null) { // If the timer is active then kill it (don't trigger it)
-        KillTimer(muteTimer, false);
+        KillTimer(muteTimer, true);
     }
     
     return Plugin_Continue;
