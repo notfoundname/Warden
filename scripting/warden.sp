@@ -179,19 +179,11 @@ public void PlayerApplyNoblock(int iClient, bool command) {
 
 public Action TempMute(int iClient, int iArgs) {
     if (iClient == Warden) { // Make sure executor is the Warden
-        if (muteTimer != INVALID_HANDLE || muteTimer != null) { // If the timer is active then force it to trigger
+        if (muteTimer != INVALID_HANDLE || muteTimer != NULL || muteTimer != null) { // If the timer is active then force it to trigger
             TriggerTimer(muteTimer, true);
-            muteTimer = INVALID_HANDLE;
         } else {
             muteTimer = CreateTimer(GetConVarFloat(g_cVar_muteTime), TempMuteTimer);
-            for (int i = 1; i <= MaxClients; i++) {
-                CPrintToChat(i, TRANSLATION_PREFIX, "warden_mute", GetConVarInt(g_cVar_muteTime));
-                if (IsClientInGame(i)) {
-                    if (GetClientTeam(i) == 2 && !BaseComm_IsClientMuted(i)) { // Mute all Terrorists
-                        SetClientListeningFlags(i, VOICE_MUTED);
-                    }
-                }
-            }
+            MuteTerrorists();
         }
     } else {
         CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
@@ -200,7 +192,22 @@ public Action TempMute(int iClient, int iArgs) {
     return Plugin_Handled;
 }
 
-public Action TempMuteTimer(Handle timer) {
+public void TempMuteTimer(Handle timer) {
+    UnmuteTerrorists();
+}
+
+public void MuteTerrorists() {
+    for (int i = 1; i <= MaxClients; i++) {
+        CPrintToChat(i, TRANSLATION_PREFIX, "warden_mute", GetConVarInt(g_cVar_muteTime));
+        if (IsClientInGame(i)) {
+            if (GetClientTeam(i) == 2 && !BaseComm_IsClientMuted(i)) { // Mute all Terrorists
+                SetClientListeningFlags(i, VOICE_MUTED);
+            }
+        }
+    }
+}
+
+public void UnmuteTerrorists() {
     for (int i = 1; i <= MaxClients; i++) {
         CPrintToChat(i, TRANSLATION_PREFIX, "warden_mute_ended", GetConVarInt(g_cVar_muteTime));
         if (IsClientInGame(i)) {
@@ -209,8 +216,6 @@ public Action TempMuteTimer(Handle timer) {
             }
         }
     }
-    
-    muteTimer = INVALID_HANDLE;
 }
 
 public Action Event_RoundStart(Handle event, const char[] name, bool dontBroadcast) {
@@ -221,9 +226,8 @@ public Action Event_RoundStart(Handle event, const char[] name, bool dontBroadca
         PlayerApplyNoblock(i, false);
     }
     
-    if (muteTimer != INVALID_HANDLE || muteTimer != null) { // If the timer is active then kill it (don't trigger it)
+    if (muteTimer != INVALID_HANDLE || muteTimer != NULL || muteTimer != null) { // If the timer is active then kill it (don't trigger it)
         KillTimer(muteTimer, true);
-        muteTimer = INVALID_HANDLE;
     }
     
     return Plugin_Continue;
