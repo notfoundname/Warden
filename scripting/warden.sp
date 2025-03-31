@@ -179,7 +179,7 @@ public void PlayerApplyNoblock(int iClient, bool command) {
 
 public Action TempMute(int iClient, int iArgs) {
     if (iClient == Warden) { // Make sure executor is the Warden
-        if (muteTimer != INVALID_HANDLE || muteTimer != NULL || muteTimer != null) { // If the timer is active then force it to trigger
+        if (IsValidHandle(muteTimer)) { // If the timer is active then force it to trigger
             TriggerTimer(muteTimer, true);
         } else {
             muteTimer = CreateTimer(GetConVarFloat(g_cVar_muteTime), TempMuteTimer);
@@ -226,7 +226,7 @@ public Action Event_RoundStart(Handle event, const char[] name, bool dontBroadca
         PlayerApplyNoblock(i, false);
     }
     
-    if (muteTimer != INVALID_HANDLE || muteTimer != NULL || muteTimer != null) { // If the timer is active then kill it (don't trigger it)
+    if (IsValidHandle(muteTimer)) { // If the timer is active then kill it (don't trigger it)
         KillTimer(muteTimer, true);
     }
     
