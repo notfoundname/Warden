@@ -182,9 +182,9 @@ public Action TempMute(int iClient, int iArgs) {
         }
         muteTimer = CreateTimer(GetConVarInt(g_cVar_muteTime), TempMuteTimer, _, TIMER_FLAG_NO_MAPCHANGE);
         for (int i = 1; i <= MaxClients; i++) {
+            CPrintToChat(i, TRANSLATION_PREFIX, "warden_mute", GetConVarInt(g_cVar_muteTime));
             if (GetClientTeam(i) == 2) { // Mute all Terrorists
                 SetClientListeningFlags(i, VOICE_MUTED);
-                CPrintToChat(i, TRANSLATION_PREFIX, "warden_mute", GetConVarInt(g_cVar_muteTime));
             }
         }
     } else {
@@ -196,9 +196,9 @@ public Action TempMute(int iClient, int iArgs) {
 
 public Action TempMuteTimer(Handle timer) {
     for (int i = 1; i <= MaxClients; i++) {
+        CPrintToChat(i, TRANSLATION_PREFIX, "warden_mute_ended", GetConVarInt(g_cVar_muteTime));
         if (GetClientTeam(i) == 2) { // Unmute all Terrorists
             SetClientListeningFlags(i, VOICE_NORMAL);
-            CPrintToChat(i, TRANSLATION_PREFIX, "warden_mute_ended", GetConVarInt(g_cVar_muteTime));
         }
     }
     
