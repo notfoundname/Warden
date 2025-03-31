@@ -180,7 +180,7 @@ public Action TempMute(int iClient, int iArgs) {
             TriggerTimer(muteTimer, false);
             return Plugin_Handled;
         }
-        muteTimer = CreateTimer(GetConVarInt(g_cVar_muteTime), TempMuteTimer, _, TIMER_FLAG_NO_MAPCHANGE);
+        muteTimer = CreateTimer(GetConVarFloat(g_cVar_muteTime), TempMuteTimer, _, TIMER_FLAG_NO_MAPCHANGE);
         for (int i = 1; i <= MaxClients; i++) {
             CPrintToChat(i, TRANSLATION_PREFIX, "warden_mute", GetConVarInt(g_cVar_muteTime));
             if (GetClientTeam(i) == 2) { // Mute all Terrorists
@@ -201,8 +201,6 @@ public Action TempMuteTimer(Handle timer) {
             SetClientListeningFlags(i, VOICE_NORMAL);
         }
     }
-    muteTimer = null;
-    
     return Plugin_Stop;
 }
 
