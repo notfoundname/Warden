@@ -13,6 +13,8 @@ int Warden = -1;
 
 bool noblockEnabled = true;
 
+Handle muteTimer = INVALID_HANDLE;
+
 Handle g_cVar_mnotes = INVALID_HANDLE;
 Handle g_cVar_muteTime = INVALID_HANDLE;
 Handle g_cVar_noblockDefault = INVALID_HANDLE;
@@ -45,8 +47,8 @@ public void OnPluginStart() {
     // Warden private commands
     RegConsoleCmd("sm_noblock", ToggleNoblock);
     RegConsoleCmd("sm_nb", ToggleNoblock);
-    //RegConsoleCmd("sm_wmute", TempMute);
-    //RegConsoleCmd("sm_wm", TempMute);
+    RegConsoleCmd("sm_wmute", TempMute);
+    RegConsoleCmd("sm_wm", TempMute);
     
     // Laserbeam
     // RegConsoleCmd("sm_lcolor", Command_Lcolor, "Change laser color");
@@ -56,6 +58,7 @@ public void OnPluginStart() {
     RegAdminCmd("sm_rw", RemoveWarden, ADMFLAG_GENERIC);
     RegAdminCmd("sm_rc", RemoveWarden, ADMFLAG_GENERIC);
     
+    // Display current warden on top of the screen
     CreateTimer(1.0, DisplayCurrentWarden, _, TIMER_REPEAT);
     
     // Hooking the events
@@ -145,12 +148,15 @@ public Action DisplayCurrentWarden(Handle timer) {
 }
 
 public Action ToggleNoblock(int iClient, int iArgs) {
-    if (iClient == Warden) { // The iClient is the warden
+    if (iClient == Warden) { // Make sure executor is the Warden
         noblockEnabled = !noblockEnabled;
         for (int i = 1; i <= MaxClients; i++) {
             PlayerApplyNoblock(i, true);
         }
+    } else {
+        CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
     }
+    
     return Plugin_Handled;
 }
 
@@ -168,12 +174,50 @@ public void PlayerApplyNoblock(int iClient, bool command) {
     }
 }
 
+public Action TempMute(int iClient, int iArgs) {
+    if (iClient == Warden) { // Make sure executor is the Warden
+        if (muteTimer != null) { // If the timer is active then force it to trigger
+            TriggerTimer(muteTimer, false);
+            return Plugin_Handled;
+        }
+        muteTimer = CreateTimer(GetConVarInt(g_cVar_muteTime), TempMuteTimer, _, TIMER_FLAG_NO_MAPCHANGE);
+        for (int i = 1; i <= MaxClients; i++) {
+            if (GetClientTeam(iClient) == 2) { // Mute all Terrorists
+                SetClientListeningFlags(i, VOICE_MUTED);
+                CPrintToChat(i, TRANSLATION_PREFIX, "warden_mute", GetConVarInt(g_cVar_muteTime));
+            }
+        }
+    } else {
+        CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
+    }
+    
+    return Plugin_Handled;
+}
+
+public Action TempMuteTimer(Handle timer) {
+    for (int i = 1; i <= MaxClients; i++) {
+        if (GetClientTeam(iClient) == 2) { // Unmute all Terrorists
+            SetClientListeningFlags(i, VOICE_NORMAL);
+            CPrintToChat(i, TRANSLATION_PREFIX, "warden_mute_ended", GetConVarInt(g_cVar_muteTime));
+        }
+    }
+    
+    return Plugin_Stop;
+}
+
 public Action Event_RoundStart(Handle event, const char[] name, bool dontBroadcast) {
     Warden = -1; // Lets remove the current warden if he exist
+    
     noblockEnabled = GetConVarBool(g_cVar_noblockDefault);
     for (int i = 1; i <= MaxClients; i++) {
         PlayerApplyNoblock(i, false);
     }
+    
+    if (muteTimer != null) { // If the timer is active then kill it (don't trigger it)
+        KillTimer(muteTimer, false);
+    }
+    
+    return Plugin_Continue;
 }
 
 public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadcast) {
@@ -187,6 +231,8 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadc
         SetEntityRenderColor(iClient, 255, 255, 255, 255); // Lets give him the standard color back
         Warden = -1; // Lets open for a new warden
     }
+    
+    return Plugin_Continue;
 }
 
 public void OnClientDisconnect(int iClient) {
