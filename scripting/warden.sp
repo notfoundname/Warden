@@ -181,17 +181,17 @@ public Action TempMute(int iClient, int iArgs) {
     if (iClient == Warden) { // Make sure executor is the Warden
         if (muteTimer != null) { // If the timer is active then force it to trigger
             TriggerTimer(muteTimer, true);
-            return Plugin_Handled;
-        }
-        muteTimer = CreateTimer(GetConVarFloat(g_cVar_muteTime), TempMuteTimer);
-        for (int i = 1; i <= MaxClients; i++) {
-            CPrintToChat(i, TRANSLATION_PREFIX, "warden_mute", GetConVarInt(g_cVar_muteTime));
-            if (IsClientInGame(i)) {
-                if (GetClientTeam(i) == 2 && !BaseComm_IsClientMuted(i)) { // Mute all Terrorists
-                    SetClientListeningFlags(i, VOICE_MUTED);
+            delete muteTimer;
+        } else {
+            muteTimer = CreateTimer(GetConVarFloat(g_cVar_muteTime), TempMuteTimer);
+            for (int i = 1; i <= MaxClients; i++) {
+                CPrintToChat(i, TRANSLATION_PREFIX, "warden_mute", GetConVarInt(g_cVar_muteTime));
+                if (IsClientInGame(i)) {
+                    if (GetClientTeam(i) == 2 && !BaseComm_IsClientMuted(i)) { // Mute all Terrorists
+                        SetClientListeningFlags(i, VOICE_MUTED);
+                    }
                 }
             }
-            
         }
     } else {
         CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
@@ -209,7 +209,7 @@ public Action TempMuteTimer(Handle timer) {
             }
         }
     }
-    muteTimer = null;
+    delete muteTimer;
 }
 
 public Action Event_RoundStart(Handle event, const char[] name, bool dontBroadcast) {
