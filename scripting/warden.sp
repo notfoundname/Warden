@@ -179,9 +179,8 @@ public void PlayerApplyNoblock(int iClient, bool command) {
 
 public Action TempMute(int iClient, int iArgs) {
     if (iClient == Warden) { // Make sure executor is the Warden
-        if (muteTimer != INVALID_HANDLE) { // If the timer is active then force it to trigger
+        if (muteTimer != INVALID_HANDLE || muteTimer != null) { // If the timer is active then force it to trigger
             TriggerTimer(muteTimer, true);
-            delete muteTimer;
         } else {
             muteTimer = CreateTimer(GetConVarFloat(g_cVar_muteTime), TempMuteTimer);
             for (int i = 1; i <= MaxClients; i++) {
@@ -209,7 +208,11 @@ public Action TempMuteTimer(Handle timer) {
             }
         }
     }
-    delete muteTimer;
+    
+    CloseHandle(muteTimer);
+    muteTimer = null;
+    
+    return Plugin_Stop;
 }
 
 public Action Event_RoundStart(Handle event, const char[] name, bool dontBroadcast) {
@@ -220,7 +223,7 @@ public Action Event_RoundStart(Handle event, const char[] name, bool dontBroadca
         PlayerApplyNoblock(i, false);
     }
     
-    if (muteTimer != INVALID_HANDLE) { // If the timer is active then kill it (don't trigger it)
+    if (muteTimer != INVALID_HANDLE || muteTimer != null) { // If the timer is active then kill it (don't trigger it)
         KillTimer(muteTimer, true);
     }
     
