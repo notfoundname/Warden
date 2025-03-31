@@ -93,9 +93,9 @@
 	
 	"warden_mute"
 	{
-		"#format"	""
-		"en"		"Terrorists have been muted for 20 seconds!"
-		"ru"		"Заключённые заглушены на 20 секунд!"
+		"#format"	"{1:i}"
+		"en"		"Terrorists have been muted for {1} seconds!"
+		"ru"		"Заключённые заглушены на {1} секунд!"
 	}
 	
 	"warden_mute_ended"
