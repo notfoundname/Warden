@@ -14,14 +14,14 @@ int Warden = -1;
 
 bool noblockEnabled = true;
 
-Handle muteTimer = null;
+Handle muteTimer = INVALID_HANDLE;
 
-Handle g_cVar_mnotes = null;
-Handle g_cVar_muteTime = null;
-Handle g_cVar_noblockDefault = null;
+Handle g_cVar_mnotes = INVALID_HANDLE;
+Handle g_cVar_muteTime = INVALID_HANDLE;
+Handle g_cVar_noblockDefault = INVALID_HANDLE;
 
-Handle g_hFrwd_OnWardenCreation = null;
-Handle g_hFrwd_OnWardenRemoved = null;
+Handle g_hFrwd_OnWardenCreation = INVALID_HANDLE;
+Handle g_hFrwd_OnWardenRemoved = INVALID_HANDLE;
 
 public Plugin myinfo = {
     name = "Jailbreak Warden",
@@ -179,7 +179,7 @@ public void PlayerApplyNoblock(int iClient, bool command) {
 
 public Action TempMute(int iClient, int iArgs) {
     if (iClient == Warden) { // Make sure executor is the Warden
-        if (muteTimer != null) { // If the timer is active then force it to trigger
+        if (muteTimer != INVALID_HANDLE) { // If the timer is active then force it to trigger
             TriggerTimer(muteTimer, true);
             delete muteTimer;
         } else {
@@ -220,7 +220,7 @@ public Action Event_RoundStart(Handle event, const char[] name, bool dontBroadca
         PlayerApplyNoblock(i, false);
     }
     
-    if (muteTimer != null) { // If the timer is active then kill it (don't trigger it)
+    if (muteTimer != INVALID_HANDLE) { // If the timer is active then kill it (don't trigger it)
         KillTimer(muteTimer, true);
     }
     
