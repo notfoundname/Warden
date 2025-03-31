@@ -211,8 +211,6 @@ public Action TempMuteTimer(Handle timer) {
     }
     
     muteTimer = INVALID_HANDLE;
-    
-    return Plugin_Stop;
 }
 
 public Action Event_RoundStart(Handle event, const char[] name, bool dontBroadcast) {
@@ -225,6 +223,7 @@ public Action Event_RoundStart(Handle event, const char[] name, bool dontBroadca
     
     if (muteTimer != INVALID_HANDLE || muteTimer != null) { // If the timer is active then kill it (don't trigger it)
         KillTimer(muteTimer, true);
+        muteTimer = INVALID_HANDLE;
     }
     
     return Plugin_Continue;
@@ -264,7 +263,6 @@ public Action RemoveWarden(int iClient, int iArgs) {
 
     return Plugin_Handled; // Prevent sourcemod from typing "unknown command" in console
 }
-
 
 public Action HookPlayerChat(int iClient, const char[] command, int argc) {
     if (Warden == iClient && iClient != 0) { // Check so the player typing is warden and also checking so the client isn't console!
