@@ -13,14 +13,14 @@ int Warden = -1;
 
 bool noblockEnabled = true;
 
-Handle muteTimer = INVALID_HANDLE;
+Handle muteTimer = null;
 
-Handle g_cVar_mnotes = INVALID_HANDLE;
-Handle g_cVar_muteTime = INVALID_HANDLE;
-Handle g_cVar_noblockDefault = INVALID_HANDLE;
+Handle g_cVar_mnotes = null;
+Handle g_cVar_muteTime = null;
+Handle g_cVar_noblockDefault = null;
 
-Handle g_hFrwd_OnWardenCreation = INVALID_HANDLE;
-Handle g_hFrwd_OnWardenRemoved = INVALID_HANDLE;
+Handle g_hFrwd_OnWardenCreation = null;
+Handle g_hFrwd_OnWardenRemoved = null;
 
 public Plugin myinfo = {
     name = "Jailbreak Warden",
@@ -201,6 +201,7 @@ public Action TempMuteTimer(Handle timer) {
             SetClientListeningFlags(i, VOICE_NORMAL);
         }
     }
+    muteTimer = null;
     
     return Plugin_Stop;
 }
