@@ -181,6 +181,7 @@ public Action TempMute(int iClient, int iArgs) {
     if (iClient == Warden) { // Make sure executor is the Warden
         if (muteTimer != INVALID_HANDLE || muteTimer != null) { // If the timer is active then force it to trigger
             TriggerTimer(muteTimer, true);
+            muteTimer = INVALID_HANDLE;
         } else {
             muteTimer = CreateTimer(GetConVarFloat(g_cVar_muteTime), TempMuteTimer);
             for (int i = 1; i <= MaxClients; i++) {
@@ -209,8 +210,7 @@ public Action TempMuteTimer(Handle timer) {
         }
     }
     
-    CloseHandle(muteTimer);
-    muteTimer = null;
+    muteTimer = INVALID_HANDLE;
     
     return Plugin_Stop;
 }
