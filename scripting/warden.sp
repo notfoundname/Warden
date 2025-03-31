@@ -187,7 +187,7 @@ public Action TempMute(int iClient, int iArgs) {
         for (int i = 1; i <= MaxClients; i++) {
             CPrintToChat(i, TRANSLATION_PREFIX, "warden_mute", GetConVarInt(g_cVar_muteTime));
             if (IsClientInGame(i)) {
-                if (GetClientTeam(i) == 2 && !BaseComm_IsClientMuted(client)) { // Mute all Terrorists
+                if (GetClientTeam(i) == 2 && !BaseComm_IsClientMuted(i)) { // Mute all Terrorists
                     SetClientListeningFlags(i, VOICE_MUTED);
                 }
             }
@@ -204,7 +204,7 @@ public Action TempMuteTimer(Handle timer) {
     for (int i = 1; i <= MaxClients; i++) {
         CPrintToChat(i, TRANSLATION_PREFIX, "warden_mute_ended", GetConVarInt(g_cVar_muteTime));
         if (IsClientInGame(i)) {
-            if (GetClientTeam(i) == 2  && !BaseComm_IsClientMuted(client)) { // Unmute all Terrorists
+            if (GetClientTeam(i) == 2  && !BaseComm_IsClientMuted(i)) { // Unmute all Terrorists
                 SetClientListeningFlags(i, VOICE_NORMAL);
             }
         }
