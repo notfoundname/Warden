@@ -80,15 +80,15 @@
 	"warden_noblock_enabled"
 	{
 		"#format"	""
-		"en"		"NoBlock enabled."
-		"ru"		"NoBlock включен."
+		"en"		"Noblock: enabled"
+		"ru"		"Noblock: включен"
 	}
 	
 	"warden_noblock_disabled"
 	{
 		"#format"	""
-		"en"		"NoBlock disabled."
-		"ru"		"NoBlock выключен."
+		"en"		"Noblock: disabled"
+		"ru"		"Noblock: выключен"
 	}
 	
 	"warden_mute"
@@ -112,18 +112,11 @@
 		"ru"		"Меню Командира"
 	}
 	
-	"warden_menu_noblock"
-	{
-		"#format"	""
-		"en"		"Toggle Noblock"
-		"ru"		"Переключ ноблок"
-	}
-	
 	"warden_menu_ff"
 	{
 		"#format"	""
-		"en"		"Toggle FF"
-		"ru"		"Переключ ФФ"
+		"en"		"Friendly Fire"
+		"ru"		"Огонь по своим"
 	}
 	
 	"warden_menu_medkit"

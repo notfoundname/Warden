@@ -11,17 +11,11 @@
 #define TRANSLATION_PREFIX "[Warden] \x07FFFFFF%t"
 
 int Warden = -1;
-
 bool noblockEnabled = true;
+Handle muteTimer = null;
 
-Handle muteTimer = INVALID_HANDLE;
-
-Handle g_cVar_mnotes = INVALID_HANDLE;
-Handle g_cVar_muteTime = INVALID_HANDLE;
-Handle g_cVar_noblockDefault = INVALID_HANDLE;
-
-Handle g_hFrwd_OnWardenCreation = INVALID_HANDLE;
-Handle g_hFrwd_OnWardenRemoved = INVALID_HANDLE;
+ConVar g_cVar_mnotes = null, g_cVar_muteTime = null, g_cVar_noblockDefault = null;
+Handle g_hFrwd_OnWardenCreation = null, g_hFrwd_OnWardenRemoved;
 
 public Plugin myinfo = {
     name = "Jailbreak Warden",
@@ -99,46 +93,58 @@ public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] sError, int iErr
 }
 
 public Action BecomeWarden(int iClient, int iArgs) {
-    if (Warden == -1) { // There is no warden , so lets proceed
-        if (GetClientTeam(iClient) == 3) { // The requested player is on the Counter-Terrorist side
-            if (IsPlayerAlive(iClient)) { // A dead warden would be worthless >_<
-                SetTheWarden(iClient);
-            } else { // Grr he is not alive -.-
-                CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_playerdead");
-            }
-        } else { // Would be weird if an terrorist would run the prison wouldn't it :p
-            CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_ctsonly");
-        }
-    } else { // The warden already exist so there is no point setting a new one
+    if (Warden != -1) {
+        // The warden already exist so there is no point setting a new one
         CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_exist", Warden);
+        return Plugin_Handled;
     }
+    
+    if (GetClientTeam(iClient) != 3) {
+        // Would be weird if an terrorist would run the prison wouldn't it :p
+        CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_ctsonly");
+        return Plugin_Handled;
+    }
+    
+    if (!IsPlayerAlive(iClient)) {
+        // Grr he is not alive -.-
+        CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_playerdead");
+        return Plugin_Handled;
+    }
+    
+    SetTheWarden(iClient);
+    
+    return Plugin_Handled;
 }
 
 public Action ExitWarden(int iClient, int iArgs) {
-    if (iClient == Warden) { // The iClient is actually the current warden so lets proceed
-        CPrintToChatAll(TRANSLATION_PREFIX, "warden_retire", iClient);
-        if (GetConVarBool(g_cVar_mnotes)) {
-            PrintCenterTextAll("%t", "warden_retire", iClient);
-        }
-        Warden = -1; // Open for a new warden
-        SetEntityRenderColor(iClient, 255, 255, 255, 255); // Lets remove the awesome color
-    } else { // Fake dude!
+    if (iClient != Warden) {
         CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
+        return Plugin_Handled;
     }
+    
+    // The iClient is actually the current warden so lets proceed
+    Warden = -1; // Open for a new warden
+    SetEntityRenderColor(iClient, 255, 255, 255, 255); // Lets remove the awesome color
+    
+    CPrintToChatAll(TRANSLATION_PREFIX, "warden_retire", iClient);
+    if (GetConVarBool(g_cVar_mnotes)) {
+        PrintCenterTextAll("%t", "warden_retire", iClient);
+    }
+    
+    return Plugin_Handled;
 }
 
 public Action DisplayCurrentWarden(Handle timer) {
     Handle hudHandle = CreateHudSynchronizer();
-    
     SetHudTextParams(1.5, -1.7, 1.0, 255, 255, 255, 255);
     
     for (int i = 1; i <= MaxClients; i++) {
         if (IsClientInGame(i)) {
             char buf[256];
             if (Warden != -1) {
-                Format(buf, sizeof(buf), "%t   ", "warden_exist", Warden);
+                Format(buf, sizeof(buf), "%t  ", "warden_exist", Warden);
             } else {
-                Format(buf, sizeof(buf), "%t   ", "warden_missing");
+                Format(buf, sizeof(buf), "%t  ", "warden_missing");
             }
             ShowSyncHudText(i, hudHandle, buf);
         }
@@ -149,15 +155,16 @@ public Action DisplayCurrentWarden(Handle timer) {
 }
 
 public Action ToggleNoblock(int iClient, int iArgs) {
-    if (iClient == Warden) { // Make sure executor is the Warden
-        noblockEnabled = !noblockEnabled;
-        for (int i = 1; i <= MaxClients; i++) {
-            if (IsClientInGame(i)) {
-                PlayerApplyNoblock(i, true);
-            }
-        }
-    } else {
+    if (iClient != Warden) {
         CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
+        return Plugin_Handled;
+    }
+    
+    noblockEnabled = !noblockEnabled;
+    for (int i = 1; i <= MaxClients; i++) {
+        if (IsClientInGame(i)) {
+            PlayerApplyNoblock(i, true);
+        }
     }
     
     return Plugin_Handled;
@@ -182,8 +189,7 @@ public Action TempMute(int iClient, int iArgs) {
         if (IsValidHandle(muteTimer)) { // If the timer is active then force it to trigger
             TriggerTimer(muteTimer, true);
         } else {
-            muteTimer = CreateTimer(GetConVarFloat(g_cVar_muteTime), TempMuteTimer);
-            MuteTerrorists();
+            MuteTerrorists(GetConVarInt(g_cVar_muteTime));
         }
     } else {
         CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
@@ -196,9 +202,10 @@ public void TempMuteTimer(Handle timer) {
     UnmuteTerrorists();
 }
 
-public void MuteTerrorists() {
+public void MuteTerrorists(float iDuration) {
+    muteTimer = CreateTimer(iDuration, TempMuteTimer);
     for (int i = 1; i <= MaxClients; i++) {
-        CPrintToChat(i, TRANSLATION_PREFIX, "warden_mute", GetConVarInt(g_cVar_muteTime));
+        CPrintToChat(i, TRANSLATION_PREFIX, "warden_mute", iDuration);
         if (IsClientInGame(i)) {
             if (GetClientTeam(i) == 2 && !BaseComm_IsClientMuted(i)) { // Mute all Terrorists
                 SetClientListeningFlags(i, VOICE_MUTED);
