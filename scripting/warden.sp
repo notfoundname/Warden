@@ -12,17 +12,18 @@
 
 int Warden = -1;
 bool noblockEnabled = true;
+bool friendlyFireEnabled = false;
 Handle muteTimer = null;
 
 ConVar g_cVar_mnotes = null, g_cVar_muteTime = null, g_cVar_noblockDefault = null;
-Handle g_hFrwd_OnWardenCreation = null, g_hFrwd_OnWardenRemoved;
+Handle g_hFrwd_OnWardenCreation = null, g_hFrwd_OnWardenRemoved = null;
 
 public Plugin myinfo = {
     name = "Jailbreak Warden",
     author = "ecca & notfoundname",
     description = "Updated Jailbreak Warden Plugin",
     version = PLUGIN_VERSION,
-    url = "ffac.eu & babrcraft.ru"
+    url = "https://github.com/notfoundname/Warden/"
 };
 
 public void OnPluginStart() {
@@ -30,18 +31,20 @@ public void OnPluginStart() {
     LoadTranslations("warden.phrases");
     
     // Register our public commands
-    RegConsoleCmd("sm_w", BecomeWarden);
-    RegConsoleCmd("sm_warden", BecomeWarden);
-    RegConsoleCmd("sm_uw", ExitWarden);
-    RegConsoleCmd("sm_unwarden", ExitWarden);
     RegConsoleCmd("sm_c", BecomeWarden);
     RegConsoleCmd("sm_commander", BecomeWarden);
+    RegConsoleCmd("sm_w", BecomeWarden);
+    RegConsoleCmd("sm_warden", BecomeWarden);
+    
     RegConsoleCmd("sm_uc", ExitWarden);
     RegConsoleCmd("sm_uncommander", ExitWarden);
+    RegConsoleCmd("sm_uw", ExitWarden);
+    RegConsoleCmd("sm_unwarden", ExitWarden);
     
-    // Warden private commands
+    // Register Warden-only commands
     RegConsoleCmd("sm_noblock", ToggleNoblock);
     RegConsoleCmd("sm_nb", ToggleNoblock);
+    
     RegConsoleCmd("sm_wmute", TempMute);
     RegConsoleCmd("sm_wm", TempMute);
     
@@ -92,6 +95,7 @@ public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] sError, int iErr
     return APLRes_Success;
 }
 
+// sm_w
 public Action BecomeWarden(int iClient, int iArgs) {
     if (Warden != -1) {
         // The warden already exist so there is no point setting a new one
@@ -116,6 +120,7 @@ public Action BecomeWarden(int iClient, int iArgs) {
     return Plugin_Handled;
 }
 
+// sm_uw
 public Action ExitWarden(int iClient, int iArgs) {
     if (iClient != Warden) {
         CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
@@ -125,6 +130,8 @@ public Action ExitWarden(int iClient, int iArgs) {
     // The iClient is actually the current warden so lets proceed
     Warden = -1; // Open for a new warden
     SetEntityRenderColor(iClient, 255, 255, 255, 255); // Lets remove the awesome color
+    
+    Forward_OnWardenRemoved(iClient);
     
     CPrintToChatAll(TRANSLATION_PREFIX, "warden_retire", iClient);
     if (GetConVarBool(g_cVar_mnotes)) {
@@ -136,6 +143,7 @@ public Action ExitWarden(int iClient, int iArgs) {
 
 public Action DisplayCurrentWarden(Handle timer) {
     Handle hudHandle = CreateHudSynchronizer();
+    // Display on top right corner of the screen
     SetHudTextParams(1.5, -1.7, 1.0, 255, 255, 255, 255);
     
     for (int i = 1; i <= MaxClients; i++) {
@@ -154,6 +162,7 @@ public Action DisplayCurrentWarden(Handle timer) {
     return Plugin_Continue;
 }
 
+// sm_noblock
 public Action ToggleNoblock(int iClient, int iArgs) {
     if (iClient != Warden) {
         CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
@@ -174,16 +183,17 @@ public void PlayerApplyNoblock(int iClient, bool command) {
     if (noblockEnabled) {
         SetEntityCollisionGroup(iClient, 2); // COLLISION_GROUP_DEBRIS_TRIGGER
         if (command) {
-            CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_noblock_enabled");
+            CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_noblock", "warden_enabled");
         }
     } else {
         SetEntityCollisionGroup(iClient, 5); // COLLISION_GROUP_PLAYER
         if (command) {
-            CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_noblock_disabled");
+            CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_noblock", "warden_disabled");
         }
     }
 }
 
+// sm_wmute
 public Action TempMute(int iClient, int iArgs) {
     if (iClient == Warden) { // Make sure executor is the Warden
         if (IsValidHandle(muteTimer)) { // If the timer is active then force it to trigger
@@ -205,7 +215,7 @@ public void TempMuteTimer(Handle timer) {
 public void MuteTerrorists(float iDuration) {
     muteTimer = CreateTimer(iDuration, TempMuteTimer);
     for (int i = 1; i <= MaxClients; i++) {
-        CPrintToChat(i, TRANSLATION_PREFIX, "warden_mute", iDuration);
+        CPrintToChat(i, TRANSLATION_PREFIX, "warden_mute_enabled", iDuration);
         if (IsClientInGame(i)) {
             if (GetClientTeam(i) == 2 && !BaseComm_IsClientMuted(i)) { // Mute all Terrorists
                 SetClientListeningFlags(i, VOICE_MUTED);
@@ -216,7 +226,7 @@ public void MuteTerrorists(float iDuration) {
 
 public void UnmuteTerrorists() {
     for (int i = 1; i <= MaxClients; i++) {
-        CPrintToChat(i, TRANSLATION_PREFIX, "warden_mute_ended", GetConVarInt(g_cVar_muteTime));
+        CPrintToChat(i, TRANSLATION_PREFIX, "warden_mute_disabled", GetConVarInt(g_cVar_muteTime));
         if (IsClientInGame(i)) {
             if (GetClientTeam(i) == 2  && !BaseComm_IsClientMuted(i)) { // Unmute all Terrorists
                 SetClientListeningFlags(i, VOICE_NORMAL);
@@ -250,6 +260,8 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadc
         }
         SetEntityRenderColor(iClient, 255, 255, 255, 255); // Lets give him the standard color back
         Warden = -1; // Lets open for a new warden
+        
+        Forward_OnWardenRemoved(iClient);
     }
     
     return Plugin_Continue;
@@ -318,7 +330,30 @@ public void RemoveTheWarden(int iClient) {
     Warden = -1;
     
     Forward_OnWardenRemoved(iClient);
+    
+    if (GetAlivePlayersCountOnTeam(3) == 1) {
+        SetTheWarden(GetFirstAlivePlayerOnTeam(3));
+    }
 }
+
+public int GetFirstAlivePlayerOnTeam(int iTeam) {
+    for (int i = 1; i <= MaxClients; i++) {
+        if (IsPlayerAlive(i) && GetClientTeam(i) == iTeam) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+public int GetAlivePlayersCountOnTeam(int iTeam) {
+    int iNumber = 0;
+    for (int i = 1; i <= MaxClients; i++) {
+        if (IsPlayerAlive(i) && GetClientTeam(i) == iTeam) {
+            iNumber++;
+        }
+    }
+    return iNumber;
+} 
 
 public int Native_ExistWarden(Handle hPlugin, int iParams) {
     return Warden != -1;

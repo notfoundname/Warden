@@ -2,140 +2,129 @@
 {
 	"warden_new"
 	{
-		"#format"	"{1:N}"
+		"#format"	"{1:s}"
 		"en"		"{1} is now the warden."
 		"ru"		"{1} стал командиром."
 	}
 	
 	"warden_playerdead"
 	{
-		"#format"	""
 		"en"		"Only alive players may become warden!"
 		"ru"		"Только живые могут стать командиром!"
 	}
 	
 	"warden_ctsonly"
 	{
-		"#format"	""
 		"en"		"Only Counter-Terrorists may become warden."
-		"ru"		"Только спецназ может стать командиром."
+		"ru"		"Только спецназовцы могут стать командиром."
 	}
 	
 	"warden_exist"
 	{
-		"#format"	"{1:N}"
+		"#format"	"{1:s}"
 		"en"		"Warden: {1}"
 		"ru"		"Командир: {1}"
 	}
 	
 	"warden_missing"
 	{
-		"#format"	""
 		"en"		"Warden missing!"
 		"ru"		"Командира нет!"
 	}
 	
 	"warden_retire"
 	{
-		"#format"	"{1:N}"
+		"#format"	"{1:s}"
 		"en"		"{1} has decided to retire!"
 		"ru"		"{1} решил покинуть пост!"
 	}
 	
 	"warden_notwarden"
 	{
-		"#format"	""
 		"en"		"You are not the warden!"
 		"ru"		"Вы не командир!"
 	}
 	
 	"warden_dead"
 	{
-		"#format"	"{1:N}"
+		"#format"	"{1:s}"
 		"en"		"The warden {1} has died!"
 		"ru"		"Командир {1} умер!"
 	}
 	
 	"warden_disconnected"
 	{
-		"#format"	""
 		"en"		"The warden has disconnected!"
 		"ru"		"Командир отключился!"
 	}
 	
 	"warden_removed"
 	{
-		"#format"	"{1:N},{2:N}"
+		"#format"	"{1:s},{2:s}"
 		"en"		"Admin {1} has fired Warden {2}."
-		"ru"		"Администратор {1} уволил командира {2}."
+		"ru"		"Админ {1} уволил командира {2}."
 	}
 	
 	"warden_noexist"
 	{
-		"#format"	""
 		"en"		"There was no warden to fire."
 		"ru"		"Некого увольнять."
 	}
 	
-	"warden_noblock_enabled"
+	"warden_enabled"
 	{
-		"#format"	""
-		"en"		"Noblock: enabled"
-		"ru"		"Noblock: включен"
+		"en"		"ON"
+		"ru"		"ВКЛ"
 	}
 	
-	"warden_noblock_disabled"
+	"warden_disabled"
 	{
-		"#format"	""
-		"en"		"Noblock: disabled"
-		"ru"		"Noblock: выключен"
+		"en"		"OFF"
+		"ru"		"ВЫКЛ"
 	}
 	
-	"warden_mute"
+	"warden_noblock"
+	{
+		"#format"	"{1:t}"
+		"en"		"Noblock: {1}"
+		"ru"		"Noblock: {1}"
+	}
+	
+	"warden_friendlyfire"
+	{
+		"#format"	"{1:t}"
+		"en"		"Friendly Fire: {1}"
+		"ru"		"Огонь по своим: {1}"
+	}
+	
+	"warden_mute_enabled"
 	{
 		"#format"	"{1:i}"
 		"en"		"Terrorists have been muted for {1} seconds!"
 		"ru"		"Заключённые заглушены на {1} секунд!"
 	}
 	
-	"warden_mute_ended"
+	"warden_mute_disabled"
 	{
-		"#format"	""
 		"en"		"Terrorists can now speak again!"
 		"ru"		"Заключённые теперь могут разговаривать!"
 	}
 	
 	"warden_menu_title"
 	{
-		"#format"	""
 		"en"		"Warden Menu"
 		"ru"		"Меню Командира"
 	}
 	
-	"warden_menu_ff"
-	{
-		"#format"	""
-		"en"		"Friendly Fire"
-		"ru"		"Огонь по своим"
-	}
-	
-	"warden_menu_medkit"
-	{
-		"#format"	""
-		"en"		"Spawn Medkit"
-		"ru"		"Выдать Аптечку"
-	}
-	
 	"warden_menu_mute"
 	{
-		"#format"	"{1:i}"
-		"en"		"Mute For {1}s"
-		"ru"		"Замутить На {1}с"
+		"#format"	"{1:i},{2:t}"
+		"en"		"Mute for {1}s: {2}"
+		"ru"		"Замутить на {1}с: {2}"
 	}
 	
 	"warden_menu_retire"
 	{
-		"#format"	""
 		"en"		"Retire"
 		"ru"		"Уволиться"
 	}
