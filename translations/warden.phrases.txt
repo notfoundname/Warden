@@ -71,30 +71,28 @@
 		"ru"		"Некого увольнять."
 	}
 	
-	"warden_enabled"
+	"warden_noblock_enabled"
 	{
-		"en"		"ON"
-		"ru"		"ВКЛ"
+		"en"		"Noblock enabled!"
+		"ru"		"Noblock включен!"
 	}
 	
-	"warden_disabled"
+	"warden_noblock_disabled"
 	{
-		"en"		"OFF"
-		"ru"		"ВЫКЛ"
+		"en"		"Noblock disabled!"
+		"ru"		"Noblock выключен!"
 	}
 	
-	"warden_noblock"
+	"warden_friendlyfire_enabled"
 	{
-		"#format"	"{1:t}"
-		"en"		"Noblock: {1}"
-		"ru"		"Noblock: {1}"
+		"en"		"Friendly Fire enabled!"
+		"ru"		"Огонь по своим включен!"
 	}
 	
-	"warden_friendlyfire"
+	"warden_friendlyfire_disabled"
 	{
-		"#format"	"{1:t}"
-		"en"		"Friendly Fire: {1}"
-		"ru"		"Огонь по своим: {1}"
+		"en"		"Friendly Fire disabled!"
+		"ru"		"Огонь по своим выключен!"
 	}
 	
 	"warden_mute_enabled"
@@ -110,17 +108,43 @@
 		"ru"		"Заключённые теперь могут разговаривать!"
 	}
 	
+	"warden_enabled"
+	{
+		"en"		"ON"
+		"ru"		"ВКЛ"
+	}
+	
+	"warden_disabled"
+	{
+		"en"		"OFF"
+		"ru"		"ВЫКЛ"
+	}
+	
 	"warden_menu_title"
 	{
 		"en"		"Warden Menu"
 		"ru"		"Меню Командира"
 	}
 	
+	"warden_menu_noblock"
+	{
+		"#format"	"{1:t}"
+		"en"		"Noblock: {1}"
+		"ru"		"Noblock: {1}"
+	}
+	
+	"warden_menu_friendlyfire"
+	{
+		"#format"	"{1:t}"
+		"en"		"Friendly Fire: {1}"
+		"ru"		"Огонь по своим: {1}"
+	}
+	
 	"warden_menu_mute"
 	{
 		"#format"	"{1:i},{2:t}"
 		"en"		"Mute for {1}s: {2}"
-		"ru"		"Замутить на {1}с: {2}"
+		"ru"		"Мут на {1}с: {2}"
 	}
 	
 	"warden_menu_retire"
