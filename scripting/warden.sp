@@ -119,8 +119,10 @@ public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] sError, int iErr
 // sm_c / sm_w.
 public Action BecomeWarden(int iClient, int iArgs) {
     if (iClient == Warden) {
-        
+        WardenMenu_Create(iClient);
+        return Plugin_Handled;
     }
+    
     if (Warden != -1) {
         // The warden already exist so there is no point setting a new one
         CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_exist", Warden);
@@ -443,7 +445,7 @@ public void WardenMenu_Create(int iClient) {
     Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_retire", iClient);
     mWardenMenu.InsertItem(7, "warden_menu_retire", szBuffer);
     
-    mWardenMenu.Display(iClient, 30);
+    mWardenMenu.Display(iClient, 10);
 }
 
 public void WardenMenu_Handler(Menu mWardenMenu, MenuAction action, int iClient, int iItem) {
@@ -473,6 +475,7 @@ public void WardenMenu_Handler(Menu mWardenMenu, MenuAction action, int iClient,
             }
             
             mWardenMenu.Cancel();
+            CloseHandle(mWardenMenu);
             WardenMenu_Create(iClient);
             return;
         }
@@ -496,6 +499,7 @@ public void SetTheWarden(int iClient) {
     Warden = iClient;
     SetEntityRenderColor(iClient, 0, 0, 255, 255);
     SetClientListeningFlags(iClient, VOICE_NORMAL);
+    WardenMenu_Create(iClient);
     
     Forward_OnWardenCreation(iClient);
 }
@@ -510,6 +514,7 @@ public void RemoveTheWarden(int iClient, bool bNotify) {
     
     SetEntityRenderColor(Warden, 255, 255, 255, 255);
     Warden = -1;
+    CancelClientMenu(iClient, false, MenuStyle_Radio);
     
     Forward_OnWardenRemoved(iClient);
     

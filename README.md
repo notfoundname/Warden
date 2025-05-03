@@ -24,7 +24,7 @@ Sourcemod plugin for Counter-Strike: Source for jailbreak servers
 | `sm_wnb` | - | Warden | Toggle collisions between players. |
 | `sm_wm` | - | Warden | Temporary mute terrorists. |
 | `sm_wff` | - | Warden | Toggle friendly fire. |
-| `sm_hw` | `<#userid|name>` | Admins | Force the player to become warden. |
+| `sm_hw` | `<#userid\|name>` | Admins | Force the player to become warden. |
 | `sm_rw` | - | Admins | Force the warden to retire. |
 
 # Credits
