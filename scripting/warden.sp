@@ -116,6 +116,9 @@ public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] sError, int iErr
 
 // sm_c / sm_w.
 public Action BecomeWarden(int iClient, int iArgs) {
+    if (iClient == Warden) {
+        
+    }
     if (Warden != -1) {
         // The warden already exist so there is no point setting a new one
         CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_exist", Warden);
@@ -252,11 +255,6 @@ public Action FriendlyFire(int iClient, int iArgs) {
             CPrintToChatAll(TRANSLATION_PREFIX, "warden_friendlyfire", "warden_enabled");
         } else {
             CPrintToChatAll(TRANSLATION_PREFIX, "warden_friendlyfire", "warden_disabled");
-        }
-        
-        // If menu is opened then update it.
-        if (IsValidHandle(mWardenMenu)) {
-            WardenMenu_Update(iClient);
         }
         
     } else {
@@ -446,16 +444,16 @@ public void WardenMenu_Create(int iClient) {
     mWardenMenu.Display(iClient, 30);
 }
 
-public void WardenMenu_Handler(Menu hMenu, MenuAction action, int iClient, int iItem) {
+public void WardenMenu_Handler(Menu mWardenMenu, MenuAction action, int iClient, int iItem) {
     switch (action) {
         case MenuAction_Select: {
             if (iClient != Warden || !IsPlayerAlive(iClient)) {
-                hMenu.Cancel();
+                mWardenMenu.Cancel();
                 return;
             }
             
             char szItem[64];
-            hMenu.GetItem(iItem, szItem, sizeof(szItem));
+            mWardenMenu.GetItem(iItem, szItem, sizeof(szItem));
             
             if (strcmp("warden_noblock", szItem, false) {
                 ToggleNoblock(iClient, 0);
@@ -468,11 +466,16 @@ public void WardenMenu_Handler(Menu hMenu, MenuAction action, int iClient, int i
             }
             if (strcmp("warden_menu_retire", szItem, false) {
                 ExitWarden(iClient, 0);
-                hMenu.Cancel();
+                mWardenMenu.Cancel();
+                return;
             }
+            
+            mWardenMenu.Cancel();
+            WardenMenu_Create(iClient);
+            return;
         }
         case MenuAction_End: {
-            delete hMenu;
+            delete mWardenMenu;
         }
     }
 }
