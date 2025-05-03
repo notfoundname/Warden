@@ -422,7 +422,7 @@ public void WardenMenu_Create(int iClient) {
     
     char szBuffer[64];
     Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_title", iClient);
-    mWardenMenu.setTitle(szBuffer);
+    mWardenMenu.SetTitle(szBuffer);
     
     // NoBlock entry.
     Format(szBuffer, sizeof(szBuffer), "%T", "warden_noblock", iClient, 
