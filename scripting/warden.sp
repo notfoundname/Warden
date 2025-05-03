@@ -1,5 +1,4 @@
 #include <basecomm>
-#include <menus>
 #include <sourcemod>
 #include <sdktools>
 #include <sourcecolors>
@@ -274,8 +273,8 @@ public Action HireWarden(int iClient, int iArgs) {
         return Plugin_Handled;
     }
     
-    char sName[128];
-    GetCmdArgString(iArgs, sizeof(iArgs));
+    char szName[128];
+    GetCmdArgString(szName, sizeof(szName));
     
     int iTarget = FindTarget(iClient, sName, false, false);
     
@@ -421,28 +420,28 @@ public void WardenMenu_Create(int iClient) {
     Menu mWardenMenu = new Menu(WardenMenu_Handler, MENU_ACTIONS_ALL);
     mWardenMenu.ExitButton = true;
     
-    char buffer[64];
-    Format(buffer, sizeof(buffer), "%T", "warden_menu_title", iClient);
-    mWardenMenu.setTitle(buffer);
+    char szBuffer[64];
+    Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_title", iClient);
+    mWardenMenu.setTitle(szBuffer);
     
     // NoBlock entry.
-    Format(buffer, sizeof(buffer), "%T", "warden_noblock", iClient, 
+    Format(szBuffer, sizeof(szBuffer), "%T", "warden_noblock", iClient, 
             bNoblock ? "warden_enabled" : "warden_disabled");
-    mWardenMenu.InsertItem(4, "warden_noblock", buffer);
+    mWardenMenu.InsertItem(4, "warden_noblock", szBuffer);
     
     // FriendlyFire entry.
-    Format(buffer, sizeof(buffer), "%T", "warden_friendlyfire", iClient, 
+    Format(szBuffer, sizeof(szBuffer), "%T", "warden_friendlyfire", iClient, 
             GetConVarBool(conVarMpFriendlyFire) ? "warden_enabled" : "warden_disabled");
-    mWardenMenu.InsertItem(5, "warden_friendlyfire", buffer);
+    mWardenMenu.InsertItem(5, "warden_friendlyfire", szBuffer);
     
     // TempMute entry.
-    Format(buffer, sizeof(buffer), "%T", "warden_menu_mute", iClient, GetConVarInt(g_cVar_muteTime), 
+    Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_mute", iClient, GetConVarInt(g_cVar_muteTime), 
             IsValidHandle(hMuteTimer) ? "warden_enabled" : "warden_disabled");
-    mWardenMenu.InsertItem(6, "warden_menu_mute", buffer);
+    mWardenMenu.InsertItem(6, "warden_menu_mute", szBuffer);
     
     // Retire entry.
-    Format(buffer, sizeof(buffer), "%T", "warden_menu_retire", iClient);
-    mWardenMenu.InsertItem(7, "warden_menu_retire", buffer);
+    Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_retire", iClient);
+    mWardenMenu.InsertItem(7, "warden_menu_retire", szBuffer);
     
     mWardenMenu.Display(iClient, 30);
 }
