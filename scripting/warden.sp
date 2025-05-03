@@ -272,7 +272,7 @@ public Action HireWarden(int iClient, int iArgs) {
     }
     
     char sName[128];
-    GetCmdArgString(arg, sizeof(arg));
+    GetCmdArgString(arg, sizeof(iArgs));
     
     int iTarget = FindTarget(iClient, sName, false, false);
     
