@@ -455,16 +455,16 @@ public void WardenMenu_Handler(Menu mWardenMenu, MenuAction action, int iClient,
             char szItem[64];
             mWardenMenu.GetItem(iItem, szItem, sizeof(szItem));
             
-            if (strcmp("warden_noblock", szItem, false) {
+            if (strcmp("warden_noblock", szItem, false)) {
                 ToggleNoblock(iClient, 0);
             }
-            if (strcmp("warden_friendlyfire", szItem, false) {
+            if (strcmp("warden_friendlyfire", szItem, false)) {
                 FriendlyFire(iClient, 0);
             }
-            if (strcmp("warden_menu_mute", szItem, false) {
+            if (strcmp("warden_menu_mute", szItem, false)) {
                 TempMute(iClient, 0);
             }
-            if (strcmp("warden_menu_retire", szItem, false) {
+            if (strcmp("warden_menu_retire", szItem, false)) {
                 ExitWarden(iClient, 0);
                 mWardenMenu.Cancel();
                 return;
