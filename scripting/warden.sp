@@ -276,7 +276,7 @@ public Action HireWarden(int iClient, int iArgs) {
     char szName[128];
     GetCmdArgString(szName, sizeof(szName));
     
-    int iTarget = FindTarget(iClient, sName, false, false);
+    int iTarget = FindTarget(iClient, szName, false, false);
     
     if (iTarget == -1) {
         CPrintToChat(iClient, TRANSLATION_PREFIX, "No matching client");
