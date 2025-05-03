@@ -1,4 +1,5 @@
 #include <basecomm>
+#include <menus>
 #include <sourcemod>
 #include <sdktools>
 #include <sourcecolors>
@@ -15,7 +16,7 @@
 
 int Warden = -1;
 bool bNoblock = true;
-ConVar conVarMpFriendlyFire = FindConVar("mp_friendlyfire");
+ConVar conVarMpFriendlyFire;
 Handle hMuteTimer = null;
 
 ConVar g_cVar_mnotes = null, g_cVar_muteTime = null, g_cVar_noblockDefault = null;
@@ -52,8 +53,10 @@ public void OnPluginStart() {
     RegConsoleCmd("sm_wmute", TempMute);
     RegConsoleCmd("sm_wm", TempMute);
     
+    conVarMpFriendlyFire = FindConVar("mp_friendlyfire");
     RegConsoleCmd("sm_wfriendlyfire", FriendlyFire);
     RegConsoleCmd("sm_wff", FriendlyFire);
+    
     
     // Laserbeam
     // RegConsoleCmd("sm_lcolor", Command_Lcolor, "Change laser color");
@@ -208,7 +211,7 @@ public Action TempMute(int iClient, int iArgs) {
         if (IsValidHandle(hMuteTimer)) {
             TriggerTimer(hMuteTimer, true);
         } else {
-            MuteTerrorists(GetConVarInt(g_cVar_muteTime));
+            MuteTerrorists(GetConVarFloat(g_cVar_muteTime));
         }
     } else {
         CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
@@ -574,7 +577,7 @@ public int Native_RemoveWarden(Handle hPlugin, int iParams) {
         ThrowNativeError(SP_ERROR_INDEX, "Client index %i is invalid", iClient);
     
     if (iClient == Warden) {
-        RemoveTheWarden(iClient);
+        RemoveTheWarden(iClient, true);
     }
 }
 
