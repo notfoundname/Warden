@@ -514,7 +514,7 @@ public void RemoveTheWarden(int iClient, bool bNotify) {
     
     SetEntityRenderColor(Warden, 255, 255, 255, 255);
     Warden = -1;
-    CancelClientMenu(iClient, false, MenuStyle_Radio);
+    CancelClientMenu(iClient, false, INVALID_HANDLE);
     
     Forward_OnWardenRemoved(iClient);
     
