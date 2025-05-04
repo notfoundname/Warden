@@ -2,7 +2,7 @@
 {
 	"warden_new"
 	{
-		"#format"	"{1:s}"
+		"#format"	"{1:N}"
 		"en"		"{1} is now the warden."
 		"ru"		"{1} стал командиром."
 	}
@@ -21,7 +21,7 @@
 	
 	"warden_exist"
 	{
-		"#format"	"{1:s}"
+		"#format"	"{1:N}"
 		"en"		"Warden: {1}"
 		"ru"		"Командир: {1}"
 	}
@@ -34,7 +34,7 @@
 	
 	"warden_retire"
 	{
-		"#format"	"{1:s}"
+		"#format"	"{1:N}"
 		"en"		"{1} has decided to retire!"
 		"ru"		"{1} решил покинуть пост!"
 	}
@@ -47,7 +47,7 @@
 	
 	"warden_dead"
 	{
-		"#format"	"{1:s}"
+		"#format"	"{1:N}"
 		"en"		"The warden {1} has died!"
 		"ru"		"Командир {1} умер!"
 	}
@@ -60,7 +60,7 @@
 	
 	"warden_removed"
 	{
-		"#format"	"{1:s},{2:s}"
+		"#format"	"{1:N},{2:N}"
 		"en"		"Admin {1} has fired Warden {2}."
 		"ru"		"Админ {1} уволил командира {2}."
 	}
@@ -73,31 +73,31 @@
 	
 	"warden_noblock_enabled"
 	{
-		"en"		"Noblock enabled!"
-		"ru"		"Noblock включен!"
+		"en"		"Noblock has been enabled!"
+		"ru"		"Noblock был включён!"
 	}
 	
 	"warden_noblock_disabled"
 	{
-		"en"		"Noblock disabled!"
-		"ru"		"Noblock выключен!"
+		"en"		"Noblock has been disabled!"
+		"ru"		"Noblock был выключен!"
 	}
 	
 	"warden_friendlyfire_enabled"
 	{
-		"en"		"Friendly Fire enabled!"
-		"ru"		"Огонь по своим включен!"
+		"en"		"Friendly Fire has been enabled!"
+		"ru"		"Огонь по своим был включён!"
 	}
 	
 	"warden_friendlyfire_disabled"
 	{
-		"en"		"Friendly Fire disabled!"
-		"ru"		"Огонь по своим выключен!"
+		"en"		"Friendly Fire has been disabled!"
+		"ru"		"Огонь по своим был выключен!"
 	}
 	
 	"warden_mute_enabled"
 	{
-		"#format"	"{1:i}"
+		"#format"	"{1:.1f}"
 		"en"		"Terrorists have been muted for {1} seconds!"
 		"ru"		"Заключённые заглушены на {1} секунд!"
 	}
@@ -142,7 +142,7 @@
 	
 	"warden_menu_mute"
 	{
-		"#format"	"{1:i},{2:t}"
+		"#format"	"{1:.1f},{2:t}"
 		"en"		"Mute for {1}s: {2}"
 		"ru"		"Мут на {1}с: {2}"
 	}
