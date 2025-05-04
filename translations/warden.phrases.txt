@@ -58,6 +58,13 @@
 		"ru"		"Командир отключился!"
 	}
 	
+	"warden_hired"
+	{
+		"#format"	"{1:N},{2:N}"
+		"en"		"Admin {1} has set a new Warden {2}."
+		"ru"		"Админ {1} назначил нового командира {2}."
+	}
+	
 	"warden_removed"
 	{
 		"#format"	"{1:N},{2:N}"
