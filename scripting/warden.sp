@@ -227,6 +227,9 @@ public Action TempMute(int iClient, int iArgs) {
 
 public void TempMuteTimer(Handle timer) {
     UnmuteTerrorists();
+	if (Warden != -1) {
+		WardenMenu_Create();
+	}
 }
 
 public void MuteTerrorists(float iDuration) {
@@ -436,7 +439,7 @@ public void WardenMenu_Create() {
             GetConVarBool(conVarMpFriendlyFire) ? "warden_enabled" : "warden_disabled");
     mWardenMenu.AddItem("warden_menu_friendlyfire", szBuffer);
     
-    Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_mute", Warden, GetConVarInt(g_cVar_muteTime), 
+    Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_mute", Warden, GetConVarFloat(g_cVar_muteTime), 
             IsValidHandle(hMuteTimer) ? "warden_enabled" : "warden_disabled");
     mWardenMenu.AddItem("warden_menu_mute", szBuffer);
     
