@@ -1,7 +1,7 @@
 #include <basecomm>
 #include <sourcemod>
 #include <sdktools>
-#include <sourcecolors>
+#include <multicolors>
 #tryinclude <warden>
 
 #pragma semicolon 1
@@ -17,6 +17,8 @@ int Warden = -1;
 bool bNoblock = true;
 ConVar conVarMpFriendlyFire;
 Handle hMuteTimer = null;
+Menu hWardenMenu = null;
+bool bWardenMenuOpened = false;
 
 ConVar g_cVar_mnotes = null, g_cVar_muteTime = null, g_cVar_noblockDefault = null;
 Handle g_hFrwd_OnWardenCreation = null, g_hFrwd_OnWardenRemoved = null;
@@ -56,6 +58,8 @@ public void OnPluginStart() {
     RegConsoleCmd("sm_wfriendlyfire", FriendlyFire);
     RegConsoleCmd("sm_wff", FriendlyFire);
     
+    // Create menus.
+    hWardenMenu = new Menu(WardenMenu_Handler, MenuAction_Display|MenuAction_Select|MenuAction_Cancel|MenuAction_End);
     
     // Laserbeam
     // RegConsoleCmd("sm_lcolor", Command_Lcolor, "Change laser color");
@@ -121,8 +125,7 @@ public Action BecomeWarden(int iClient, int iArgs) {
     if (Warden != -1) {
         // The warden already exist so there is no point setting a new one
         if (iClient == Warden) {
-            WardenMenu_Create();
-            //Menu_Test1();
+            WardenMenu_Refresh();
         } else {
             CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_exist", Warden);
         }
@@ -142,8 +145,6 @@ public Action BecomeWarden(int iClient, int iArgs) {
     }
     
     SetTheWarden(iClient, true);
-    WardenMenu_Create();
-    //Menu_Test1();
     
     return Plugin_Handled;
 }
@@ -184,8 +185,10 @@ public Action ToggleNoblock(int iClient, int iArgs) {
     // Toggle the value and apply it.
     bNoblock = !bNoblock;
     for (int i = 1; i <= MaxClients; i++) {
-        if (IsClientConnected(i) && IsClientInGame(i)) {
-            PlayerApplyNoblock(i, true);
+        if (IsValidEntity(i)) {
+            if (IsClientInGame(i)) {
+                PlayerApplyNoblock(i, true);
+            }
         }
     }
     
@@ -193,19 +196,30 @@ public Action ToggleNoblock(int iClient, int iArgs) {
 }
 
 public void PlayerApplyNoblock(int iClient, bool bCommand) {
-    if (IsClientConnected(iClient) && IsClientInGame(iClient)) {
-        if (bNoblock) {
-            SetEntityCollisionGroup(iClient, COLLISION_GROUP_DEBRIS_TRIGGER);
-            if (bCommand) {
-                CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_noblock_enabled");
-            }
-        } else {
-            SetEntityCollisionGroup(iClient, COLLISION_GROUP_PLAYER);
-            if (bCommand) {
-                CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_noblock_disabled");
-            }
+    if (iClient == 0) {
+        return;
+    }
+    
+    if (!IsValidEntity(iClient)) {
+        return;
+    }
+    
+    if (!IsClientInGame(iClient)) {
+        return;
+    }
+    
+    if (bNoblock) {
+        SetEntityCollisionGroup(iClient, COLLISION_GROUP_DEBRIS_TRIGGER);
+        if (bCommand) {
+            CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_noblock_enabled");
+        }
+    } else {
+        SetEntityCollisionGroup(iClient, COLLISION_GROUP_PLAYER);
+        if (bCommand) {
+            CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_noblock_disabled");
         }
     }
+    
 }
 
 // sm_wmute / sm_wm.
@@ -227,18 +241,22 @@ public Action TempMute(int iClient, int iArgs) {
 
 public void TempMuteTimer(Handle timer) {
     UnmuteTerrorists();
-	if (Warden != -1) {
-		WardenMenu_Create();
-	}
+    // Doing this to update the menu.
+    hMuteTimer = null;
+    if (bWardenMenuOpened) {
+        WardenMenu_Refresh();
+    }
 }
 
 public void MuteTerrorists(float iDuration) {
     hMuteTimer = CreateTimer(iDuration, TempMuteTimer);
     for (int i = 1; i <= MaxClients; i++) {
-        if (IsClientConnected(i) && IsClientInGame(i)) {
-            CPrintToChat(i, TRANSLATION_PREFIX, "warden_mute_enabled", iDuration);
-            if (GetClientTeam(i) == 2 && !BaseComm_IsClientMuted(i)) {
-                SetClientListeningFlags(i, VOICE_MUTED);
+        if (IsValidEntity(i)) {
+            if (IsClientInGame(i)) {
+                CPrintToChat(i, TRANSLATION_PREFIX, "warden_mute_enabled", iDuration);
+                if (GetClientTeam(i) == 2 && !BaseComm_IsClientMuted(i)) {
+                    SetClientListeningFlags(i, VOICE_MUTED);
+                }
             }
         }
     }
@@ -246,10 +264,12 @@ public void MuteTerrorists(float iDuration) {
 
 public void UnmuteTerrorists() {
     for (int i = 1; i <= MaxClients; i++) {
-        if (IsClientConnected(i) && IsClientInGame(i)) {
-            CPrintToChat(i, TRANSLATION_PREFIX, "warden_mute_disabled", GetConVarInt(g_cVar_muteTime));
-            if (GetClientTeam(i) == 2 && !BaseComm_IsClientMuted(i)) {
-                SetClientListeningFlags(i, VOICE_NORMAL);
+        if (IsValidEntity(i)) {
+            if (IsClientInGame(i)) {
+                CPrintToChat(i, TRANSLATION_PREFIX, "warden_mute_disabled", GetConVarInt(g_cVar_muteTime));
+                if (GetClientTeam(i) == 2 && !BaseComm_IsClientMuted(i)) {
+                    SetClientListeningFlags(i, VOICE_NORMAL);
+                }
             }
         }
     }
@@ -335,14 +355,16 @@ public Action DisplayCurrentWarden(Handle timer) {
     SetHudTextParams(1.5, -1.7, 1.0, 255, 255, 255, 255);
     
     for (int i = 1; i <= MaxClients; i++) {
-        if (IsClientConnected(i) && IsClientInGame(i)) {
-            char buf[256];
-            if (Warden != -1) {
-                Format(buf, sizeof(buf), "%t  ", "warden_exist", Warden);
-            } else {
-                Format(buf, sizeof(buf), "%t  ", "warden_missing");
+        if (IsValidEntity(i)) {
+            if (IsClientInGame(i)) {
+                char buf[256];
+                if (Warden != -1) {
+                    Format(buf, sizeof(buf), "%t  ", "warden_exist", Warden);
+                } else {
+                    Format(buf, sizeof(buf), "%t  ", "warden_missing");
+                }
+                ShowSyncHudText(i, hudHandle, buf);
             }
-            ShowSyncHudText(i, hudHandle, buf);
         }
     }
     
@@ -367,6 +389,8 @@ public Action Event_RoundStart(Handle event, const char[] name, bool bDontBroadc
     if (IsValidHandle(hMuteTimer)) {
         KillTimer(hMuteTimer, true);
     }
+    
+    conVarMpFriendlyFire.SetBool(false, true, false);
     
     return Plugin_Continue;
 }
@@ -400,7 +424,6 @@ public void OnClientDisconnect(int iClient) {
 
 public Action HookPlayerChat(int iClient, const char[] command, int argc) {
     // Check so the player typing is a warden and also checking so the client isn't the console!
-    // notfoundname: I don't know why is there a check for a client being the console. I'll keep it anyway.
     if (Warden == iClient && iClient != 0) {
         char szText[256];
         GetCmdArg(1, szText, sizeof(szText));
@@ -410,7 +433,7 @@ public Action HookPlayerChat(int iClient, const char[] command, int argc) {
             return Plugin_Handled;
         }
         
-        if (IsClientConnected(iClient) && IsPlayerAlive(iClient) && GetClientTeam(iClient) == 3) {
+        if (IsClientInGame(iClient) && IsPlayerAlive(iClient) && GetClientTeam(iClient) == 3) {
             // Typing warden is alive and his team is Counter-Terrorist.
             CPrintToChatAll("[Warden] \x0799CCFF%N\x07FFFFFF: %s", iClient, szText);
             return Plugin_Handled;
@@ -424,40 +447,46 @@ public Action HookPlayerChat(int iClient, const char[] command, int argc) {
 // Menus.
 // ---
 
-public void WardenMenu_Create() {
-    Menu mWardenMenu = new Menu(WardenMenu_Handler);
+public void WardenMenu_Refresh() {
+    if (!IsValidHandle(hWardenMenu) || Warden == -1) {
+        return;
+    }
+    
+    hWardenMenu.RemoveAllItems();
     char szBuffer[128];
     
     Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_title", Warden);
-    mWardenMenu.SetTitle(szBuffer);
+    hWardenMenu.SetTitle(szBuffer);
     
     Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_noblock", Warden, 
             bNoblock ? "warden_enabled" : "warden_disabled");
-    mWardenMenu.AddItem("warden_menu_noblock", szBuffer);
+    hWardenMenu.AddItem("warden_menu_noblock", szBuffer);
     
     Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_friendlyfire", Warden, 
             GetConVarBool(conVarMpFriendlyFire) ? "warden_enabled" : "warden_disabled");
-    mWardenMenu.AddItem("warden_menu_friendlyfire", szBuffer);
+    hWardenMenu.AddItem("warden_menu_friendlyfire", szBuffer);
     
     Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_mute", Warden, GetConVarFloat(g_cVar_muteTime), 
             IsValidHandle(hMuteTimer) ? "warden_enabled" : "warden_disabled");
-    mWardenMenu.AddItem("warden_menu_mute", szBuffer);
+    hWardenMenu.AddItem("warden_menu_mute", szBuffer);
     
     Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_retire", Warden);
-    mWardenMenu.AddItem("warden_menu_retire", szBuffer);
+    hWardenMenu.AddItem("warden_menu_retire", szBuffer);
     
-    mWardenMenu.Display(Warden, MENU_TIME_FOREVER);
+    hWardenMenu.Display(Warden, MENU_TIME_FOREVER);
 }
 
-public int WardenMenu_Handler(Menu mWardenMenu, MenuAction action, int iClient, int iItem) {
+public void WardenMenu_Handler(Menu hMenu, MenuAction action, int iClient, int iItem) {
+    if (!IsValidHandle(hMenu) || Warden == -1 || iClient != Warden || !IsPlayerAlive(iClient)) {
+        return;
+    }
     switch (action) {
+        case MenuAction_Display: {
+            bWardenMenuOpened = true;
+        }
         case MenuAction_Select: {
-            if (Warden == -1 || iClient != Warden || !IsPlayerAlive(iClient)) {
-                return 0;
-            }
-            
             char szItem[128];
-            mWardenMenu.GetItem(iItem, szItem, sizeof(szItem));
+            hMenu.GetItem(iItem, szItem, sizeof(szItem));
             
             if (strcmp("warden_menu_noblock", szItem, false) == 0) {
                 ToggleNoblock(iClient, 0);
@@ -473,16 +502,14 @@ public int WardenMenu_Handler(Menu mWardenMenu, MenuAction action, int iClient, 
             
             if (strcmp("warden_menu_retire", szItem, false) == 0) {
                 ExitWarden(iClient, 0);
-                return 0;
             }
             
-            WardenMenu_Create();
+            WardenMenu_Refresh();
         }
         case MenuAction_Cancel, MenuAction_End: {
-            delete mWardenMenu;
+            bWardenMenuOpened = false;
         }
     }
-    return 0;
 }
 
 // ---
@@ -501,6 +528,7 @@ public void SetTheWarden(int iClient, bool bNotify) {
     Warden = iClient;
     SetEntityRenderColor(iClient, 0, 0, 255, 255);
     SetClientListeningFlags(iClient, VOICE_NORMAL);
+    WardenMenu_Refresh();
     
     Forward_OnWardenCreation(iClient);
 }
@@ -513,37 +541,11 @@ public void RemoveTheWarden(int iClient, bool bNotify) {
         }
     }
     
-    SetEntityRenderColor(Warden, 255, 255, 255, 255);
     Warden = -1;
+    SetEntityRenderColor(Warden, 255, 255, 255, 255);
+    hWardenMenu.Cancel();
     
     Forward_OnWardenRemoved(iClient);
-    
-    if (GetAlivePlayersCountOnTeam(3) == 1) {
-        SetTheWarden(GetFirstAlivePlayerOnTeam(3), !bNotify);
-    }
-}
-
-// ---
-// Etc. functions.
-// ---
-
-public int GetFirstAlivePlayerOnTeam(int iTeam) {
-    for (int i = 1; i <= MaxClients; i++) {
-        if (IsClientConnected(i) && IsClientInGame(i) && IsPlayerAlive(i) && GetClientTeam(i) == iTeam) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-public int GetAlivePlayersCountOnTeam(int iTeam) {
-    int iNumber = 0;
-    for (int i = 1; i <= MaxClients; i++) {
-        if (IsClientConnected(i) && IsClientInGame(i) && IsPlayerAlive(i) && GetClientTeam(i) == iTeam) {
-            iNumber++;
-        }
-    }
-    return iNumber;
 }
 
 // ---
@@ -557,7 +559,7 @@ public int Native_ExistWarden(Handle hPlugin, int iParams) {
 public int Native_IsWarden(Handle hPlugin, int iParams) {
     int iClient = GetNativeCell(1);
     
-    if (!IsClientConnected(iClient) || !IsClientInGame(iClient))
+    if (!IsClientInGame(iClient))
         ThrowNativeError(SP_ERROR_INDEX, "Client index %i is invalid", iClient);
     
     return iClient == Warden;
@@ -566,7 +568,7 @@ public int Native_IsWarden(Handle hPlugin, int iParams) {
 public int Native_SetWarden(Handle hPlugin, int iParams) {
     int iClient = GetNativeCell(1);
     
-    if (!IsClientConnected(iClient) || IsClientInGame(iClient))
+    if (!IsClientInGame(iClient))
         ThrowNativeError(SP_ERROR_INDEX, "Client index %i is invalid", iClient);
     
     if (Warden == -1) {
@@ -577,7 +579,7 @@ public int Native_SetWarden(Handle hPlugin, int iParams) {
 public int Native_RemoveWarden(Handle hPlugin, int iParams) {
     int iClient = GetNativeCell(1);
     
-    if (!IsClientConnected(iClient) || IsClientInGame(iClient))
+    if (!IsClientInGame(iClient))
         ThrowNativeError(SP_ERROR_INDEX, "Client index %i is invalid", iClient);
     
     if (iClient == Warden) {
