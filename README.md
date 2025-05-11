@@ -1,4 +1,4 @@
-# Warden
+# Warden [![Sourcemod CI](https://github.com/notfoundname/Warden/actions/workflows/sourcemod.yml/badge.svg)](https://github.com/notfoundname/Warden/actions/workflows/sourcemod.yml)
 Sourcemod plugin for Counter-Strike: Source for jailbreak servers.
 Made to work alongside SM Hosties, but is independent.
 
