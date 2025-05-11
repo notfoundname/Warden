@@ -154,6 +154,19 @@
 		"ru"		"Мут на {1}с: {2}"
 	}
 	
+	"warden_menu_splitplayers"
+	{
+		"en"		"Split Ts into teams"
+		"ru"		"Разделить Т по командам"
+	}
+	
+	"warden_menu_laserbeam"
+	{
+		"#format"	"{1:t}"
+		"en"		"Laserbeam: {2}"
+		"ru"		"Указатель: {2}"
+	}
+	
 	"warden_menu_retire"
 	{
 		"en"		"Retire"
