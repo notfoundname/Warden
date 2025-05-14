@@ -1,5 +1,12 @@
 "Phrases"
 {
+	"warden_plugin_prefix"
+	{
+		"#format"	"{1:t}"
+		"en"		"{lightblue}[Warden] {white}{1}"
+		"ru"		"{lightblue}[КМД] {white}{1}"
+	}
+	
 	"warden_new"
 	{
 		"#format"	"{1:N}"
@@ -115,6 +122,25 @@
 		"ru"		"Заключённые теперь могут разговаривать!"
 	}
 	
+	"warden_team_chosen"
+	{
+		"#format"	"{1:t}"
+		"en"		"You are now on team {1}!"
+		"ru"		"Теперь вы в команде {1}!"
+	}
+	
+	"warden_team_blue"
+	{
+		"en"		"Blue"
+		"ru"		"Синие"
+	}
+	
+	"warden_team_red"
+	{
+		"en"		"Red"
+		"ru"		"Красные"
+	}
+	
 	"warden_enabled"
 	{
 		"en"		"ON"
@@ -158,13 +184,6 @@
 	{
 		"en"		"Split Ts into teams"
 		"ru"		"Разделить Т по командам"
-	}
-	
-	"warden_menu_laserbeam"
-	{
-		"#format"	"{1:t}"
-		"en"		"Laserbeam: {2}"
-		"ru"		"Указатель: {2}"
 	}
 	
 	"warden_menu_retire"

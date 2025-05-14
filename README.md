@@ -12,13 +12,13 @@ Looked up a lot of stuff from [destoer's plugin](https://github.com/destoer/coun
 - Temp mute toggle
 - Friendly fire toggle
 - Splitting players into two teams
-- Laser pointer
 - Admin commands
 - Translations (en, ru) with colours support
+- todo: laserbeam
 
 # ConVars
 | Name | Default Value | Value Type | Description |
-|:---:|:---:|:---:|---|
+|---|---|---|---|
 | `sm_warden_version` | `PLUGIN_VERSION` | `String` | The version of the SourceMod plugin JailBreak Warden. |
 | `sm_warden_better_notifications` | `1` | `bool` | 0 - disabled, 1 - Will display center text. |
 | `sm_warden_mute_time` | `20` | `float` | For how long warden can mute players. |
@@ -27,11 +27,12 @@ Looked up a lot of stuff from [destoer's plugin](https://github.com/destoer/coun
 
 # Commands
 | Name | Arguments | Permission | Description |
-|:---:|:---:|:---:|---|
+|---|---|---|---|
 | `sm_w` | - | Alive Counter-Terrorist | Become warden. |
 | `sm_uw` | - | Alive Counter-Terrorist | Retire as a warden. |
 | `sm_wnb` | - | Warden | Toggle collisions between players. |
 | `sm_wm` | - | Warden | Temporary mute terrorists. |
 | `sm_wff` | - | Warden | Toggle friendly fire. |
+| `sm_wsp` | - | Warden | Split players into two teams. |
 | `sm_hw` | `<#userid\|name>` | Admins | Force the player to become warden. |
 | `sm_rw` | - | Admins | Force the warden to retire. |
