@@ -279,6 +279,7 @@ public Action SplitPlayers(int iClient, int iArgs) {
                 }
             }
         }
+        CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_team_split");
     }
     return Plugin_Handled;
 }

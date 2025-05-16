@@ -122,6 +122,12 @@
 		"ru"		"Теперь вы в команде {1}!"
 	}
 	
+	"warden_team_split"
+	{
+		"en"		"Teams were distributed!"
+		"ru"		"Команды были распределены!"
+	}
+	
 	"warden_team_blue"
 	{
 		"en"		"{blue}Blue"
