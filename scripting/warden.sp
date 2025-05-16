@@ -9,6 +9,7 @@
 #pragma newdecls required
 
 #define PLUGIN_VERSION   "4.3.0"
+#define TRANSLATION_PREFIX "{lightblue}[Warden] {white}%t"
 
 // notfoundname: I tried searching for enum struct but it does not seem to exist.
 #define COLLISION_GROUP_DEBRIS_TRIGGER 2
@@ -107,20 +108,20 @@ public Action BecomeWarden(int iClient, int iArgs) {
         if (iClient == Warden) {
             WardenMenu_Refresh();
         } else {
-            CPrintToChat(iClient, "warden_plugin_prefix", "warden_exist", Warden);
+            CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_exist", Warden);
         }
         return Plugin_Handled;
     }
     
     if (GetClientTeam(iClient) != CS_TEAM_CT) {
         // Would be weird if an terrorist would run the prison wouldn't it :p
-        CPrintToChat(iClient, "warden_plugin_prefix", "warden_ctsonly");
+        CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_ctsonly");
         return Plugin_Handled;
     }
     
     if (!IsPlayerAlive(iClient)) {
         // Grr he is not alive -.-
-        CPrintToChat(iClient, "warden_plugin_prefix", "warden_playerdead");
+        CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_playerdead");
         return Plugin_Handled;
     }
     
@@ -133,7 +134,7 @@ public Action BecomeWarden(int iClient, int iArgs) {
 public Action ExitWarden(int iClient, int iArgs) {
     // Make sure executor is the Warden.
     if (iClient != Warden) {
-        CPrintToChat(iClient, "warden_plugin_prefix", "warden_notwarden");
+        CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
         return Plugin_Handled;
     }
     
@@ -143,7 +144,7 @@ public Action ExitWarden(int iClient, int iArgs) {
     // API.
     Forward_OnWardenRemoved(iClient);
     
-    CPrintToChatAll("warden_plugin_prefix", "warden_retire", iClient);
+    CPrintToChatAll(TRANSLATION_PREFIX, "warden_retire", iClient);
     if (conVarBetterNotifications.BoolValue) {
         PrintCenterTextAll("%t", "warden_retire", iClient);
     }
@@ -155,7 +156,7 @@ public Action ExitWarden(int iClient, int iArgs) {
 public Action ToggleNoblock(int iClient, int iArgs) {
     // Make sure executor is the Warden.
     if (iClient != Warden) {
-        CPrintToChat(iClient, "warden_plugin_prefix", "warden_notwarden");
+        CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
         return Plugin_Handled;
     }   
     
@@ -177,7 +178,7 @@ public void PlayerApplyNoblock(int iClient, bool bCommand) {
     
     SetEntityCollisionGroup(iClient, bNoblock ? COLLISION_GROUP_DEBRIS_TRIGGER : COLLISION_GROUP_PLAYER);
     if (bCommand) {
-        CPrintToChat(iClient, "warden_plugin_prefix", bNoblock ? "warden_noblock_enabled" : "warden_noblock_disabled");
+        CPrintToChat(iClient, TRANSLATION_PREFIX, bNoblock ? "warden_noblock_enabled" : "warden_noblock_disabled");
     }
 }
 
@@ -192,7 +193,7 @@ public Action TempMute(int iClient, int iArgs) {
             MuteTerrorists(conVarMuteTime.FloatValue);
         }
     } else {
-        CPrintToChat(iClient, "warden_plugin_prefix", "warden_notwarden");
+        CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
     }
     
     return Plugin_Handled;
@@ -211,7 +212,7 @@ public void MuteTerrorists(float iDuration) {
     hMuteTimer = CreateTimer(iDuration, TempMuteTimer);
     for (int i = 1; i <= MaxClients; i++) {
         if (IsValidClient(i)) {
-            CPrintToChat(i, "warden_plugin_prefix", "warden_mute_enabled", iDuration);
+            CPrintToChat(i, TRANSLATION_PREFIX, "warden_mute_enabled", iDuration);
             if (GetClientTeam(i) == CS_TEAM_T && !BaseComm_IsClientMuted(i)) {
                 SetClientListeningFlags(i, VOICE_MUTED);
             }
@@ -222,7 +223,7 @@ public void MuteTerrorists(float iDuration) {
 public void UnmuteTerrorists() {
     for (int i = 1; i <= MaxClients; i++) {
         if (IsValidClient(i)) {
-            CPrintToChat(i, "warden_plugin_prefix", "warden_mute_disabled", conVarMuteTime.FloatValue);
+            CPrintToChat(i, TRANSLATION_PREFIX, "warden_mute_disabled", conVarMuteTime.FloatValue);
             if (GetClientTeam(i) == CS_TEAM_T && !BaseComm_IsClientMuted(i)) {
                 SetClientListeningFlags(i, VOICE_NORMAL);
             }
@@ -235,10 +236,10 @@ public Action FriendlyFire(int iClient, int iArgs) {
     // Make sure executor is the Warden.
     if (iClient == Warden) {
         conVarMpFriendlyFire.SetBool(!conVarMpFriendlyFire.BoolValue, true, false);
-        CPrintToChatAll("warden_plugin_prefix",
+        CPrintToChatAll(TRANSLATION_PREFIX,
                 conVarMpFriendlyFire.BoolValue ? "warden_friendlyfire_enabled" : "warden_friendlyfire_disabled");
     } else {
-        CPrintToChat(iClient, "warden_plugin_prefix", "warden_notwarden");
+        CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
     }
     
     return Plugin_Handled;
@@ -254,7 +255,7 @@ public Action SplitPlayers(int iClient, int iArgs) {
                 // If our client is valid then put him into a team.
                 if (IsValidClient(i) && IsPlayerAlive(i) && GetClientTeam(i) == CS_TEAM_T) {
                     SetEntityRenderColor(i, bRed ? 255 : 0, 0, bRed ? 0 : 255, 255);
-                    CPrintToChat(i, "warden_plugin_prefix", "warden_team_chosen", 
+                    CPrintToChat(i, TRANSLATION_PREFIX, "warden_team_chosen", 
                             bRed ? "warden_team_red" : "warden_team_blue");
                     bRed = !bRed;
                 }
@@ -272,7 +273,7 @@ public Action SplitPlayers(int iClient, int iArgs) {
                 // If our client is valid then put him into a team.
                 if (IsValidClient(iEntity) && IsPlayerAlive(iEntity) && GetClientTeam(iEntity) == CS_TEAM_T) {
                     SetEntityRenderColor(iEntity, bRed ? 255 : 0, 0, bRed ? 0 : 255, 255);
-                    CPrintToChat(iEntity, "warden_plugin_prefix", "warden_team_chosen", 
+                    CPrintToChat(iEntity, TRANSLATION_PREFIX, "warden_team_chosen", 
                             bRed ? "warden_team_red" : "warden_team_blue");
                     bRed = !bRed;
                 }
@@ -290,7 +291,7 @@ bool AddEntities(int iEntity, ArrayList entities) {
 // sm_hirewarden <#userid|name>.
 public Action HireWarden(int iClient, int iArgs) {
     if (iArgs < 1) {
-        CPrintToChat(iClient, "warden_plugin_prefix", "No matching client");
+        CPrintToChat(iClient, TRANSLATION_PREFIX, "No matching client");
         return Plugin_Handled;
     }
     
@@ -300,17 +301,17 @@ public Action HireWarden(int iClient, int iArgs) {
     int iTarget = FindTarget(iClient, szName, false, false);
     
     if (!IsValidClient(iTarget)) {
-        CPrintToChat(iClient, "warden_plugin_prefix", "No matching client");
+        CPrintToChat(iClient, TRANSLATION_PREFIX, "No matching client");
         return Plugin_Handled;
     }
     
     if (GetClientTeam(iTarget) != CS_TEAM_CT) {
-        CPrintToChat(iClient, "warden_plugin_prefix", "warden_ctsonly");
+        CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_ctsonly");
         return Plugin_Handled;
     }
     
     if (!IsPlayerAlive(iTarget)) {
-        CPrintToChat(iClient, "warden_plugin_prefix", "warden_playerdead");
+        CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_playerdead");
         return Plugin_Handled;
     }
     
@@ -322,7 +323,7 @@ public Action HireWarden(int iClient, int iArgs) {
     // Make our valid target the warden.
     SetTheWarden(iTarget, false);
     
-    CPrintToChatAll("warden_plugin_prefix", "warden_hired", iClient, Warden);
+    CPrintToChatAll(TRANSLATION_PREFIX, "warden_hired", iClient, Warden);
     if (conVarBetterNotifications.BoolValue) {
         PrintCenterTextAll("%t", "warden_hired", iClient, Warden);
     }
@@ -337,7 +338,7 @@ public Action RemoveWarden(int iClient, int iArgs) {
     if (Warden != -1) {
         RemoveTheWarden(iClient, true);
     } else {
-        CPrintToChatAll("warden_plugin_prefix", "warden_noexist");
+        CPrintToChatAll(TRANSLATION_PREFIX, "warden_noexist");
     }
     
     // Prevent sourcemod from typing "unknown command" in console.
@@ -396,7 +397,7 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool bDontBroad
     
     // Aww damn, he is the warden.
     if (iClient == Warden) {
-        CPrintToChatAll("warden_plugin_prefix", "warden_dead", Warden);
+        CPrintToChatAll(TRANSLATION_PREFIX, "warden_dead", Warden);
         if (conVarBetterNotifications.BoolValue) {
             PrintCenterTextAll("%t", "warden_dead", Warden);
         }
@@ -409,7 +410,7 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool bDontBroad
 public void OnClientDisconnect(int iClient) {
     // The warden disconnected, action!
     if (iClient == Warden) {
-        CPrintToChatAll("warden_plugin_prefix", "warden_disconnected");
+        CPrintToChatAll(TRANSLATION_PREFIX, "warden_disconnected");
         if (conVarBetterNotifications.BoolValue) {
             PrintCenterTextAll("%t", "warden_disconnected");
         }
@@ -430,7 +431,7 @@ public Action HookPlayerChat(int iClient, const char[] command, int argc) {
         
         if (IsClientInGame(iClient) && IsPlayerAlive(iClient) && GetClientTeam(iClient) == CS_TEAM_CT) {
             // Typing warden is alive and his team is Counter-Terrorist.
-            CPrintToChatAll("warden_plugin_prefix", "{blue}%N{white}: %s", iClient, szText);
+            CPrintToChatAll(TRANSLATION_PREFIX, "{blue}%N{white}: %s", iClient, szText);
             return Plugin_Handled;
         }
     }
@@ -520,7 +521,7 @@ public void WardenMenu_Handler(Menu hMenu, MenuAction action, int iClient, int i
 
 public void SetTheWarden(int iClient, bool bNotify) {
     if (bNotify) {
-        CPrintToChatAll("warden_plugin_prefix", "warden_new", iClient);
+        CPrintToChatAll(TRANSLATION_PREFIX, "warden_new", iClient);
         
         if (conVarBetterNotifications.BoolValue) {
             PrintCenterTextAll("%t", "warden_new", iClient);
@@ -536,7 +537,7 @@ public void SetTheWarden(int iClient, bool bNotify) {
 
 public void RemoveTheWarden(int iClient, bool bNotify) {
     if (bNotify) {
-        CPrintToChatAll("warden_plugin_prefix", "warden_removed", iClient, Warden);
+        CPrintToChatAll(TRANSLATION_PREFIX, "warden_removed", iClient, Warden);
         if (conVarBetterNotifications.BoolValue) {
             PrintCenterTextAll("%t", "warden_removed", iClient, Warden);
         }

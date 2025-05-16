@@ -1,12 +1,5 @@
 "Phrases"
-{
-	"warden_plugin_prefix"
-	{
-		"#format"	"{1:t}"
-		"en"		"{lightblue}[Warden] {white}{1}"
-		"ru"		"{lightblue}[КМД] {white}{1}"
-	}
-	
+{	
 	"warden_new"
 	{
 		"#format"	"{1:N}"
@@ -131,14 +124,14 @@
 	
 	"warden_team_blue"
 	{
-		"en"		"Blue"
-		"ru"		"Синие"
+		"en"		"{blue}Blue"
+		"ru"		"{blue}Синие"
 	}
 	
 	"warden_team_red"
 	{
-		"en"		"Red"
-		"ru"		"Красные"
+		"en"		"{red}Red"
+		"ru"		"{red}Красные"
 	}
 	
 	"warden_enabled"
