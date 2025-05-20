@@ -23,7 +23,7 @@ Handle hMuteTimer = null;
 Menu hWardenMenu = null;
 bool bWardenMenuOpened = false;
 
-ConVar conVarBetterNotifications, conVarMuteTime, conVarNoblockDefault, conVarSplitPlayersRadius;
+ConVar conVarBetterNotifications, conVarMuteTime, conVarNoblockDefault, conVarSplitPlayersRadius, conVarKeepPlayerColor;
 Handle forwardOnWardenCreation, forwardOnWardenRemoved;
 
 public Plugin myinfo = {
@@ -82,7 +82,7 @@ public void OnPluginStart() {
     
     // Hooking the events.
     HookEvent("round_start", Event_RoundStart); // For the round start
-    HookEvent("player_death", Event_PlayerDeath); // To check when our warden dies :)
+    HookEvent("player_death", Event_PlayerDeath, EventHookMode_Pre); // To check when our warden dies :)
     
     // For our warden to look some extra cool.
     AddCommandListener(HookPlayerChat, "say");
@@ -92,6 +92,7 @@ public void OnPluginStart() {
     conVarMuteTime = CreateConVar("sm_warden_mute_time", "20", "For how long warden can mute players.", FCVAR_NONE, true, 5.0, true, 60.0);
     conVarNoblockDefault = CreateConVar("sm_warden_noblock_default", "1", "0 - start with player collisions, 1 - start with no collisions.", FCVAR_NONE, true, 0.0, true, 1.0);
     conVarSplitPlayersRadius = CreateConVar("sm_warden_splitplayers_radius", "256", "Radius of searching for splitting players into two teams. 0 to not care.", FCVAR_NONE, true, 0.0, true, 2048.0);
+    conVarKeepPlayerColor = CreateConVar("sm_warden_keep_player_color", "1", "Enable to make client-side ragdolls keep player's custom color.", FCVAR_NONE, true, 0.0, true, 1.0);
     
     // May not touch this line.
     CreateConVar("sm_warden_version", PLUGIN_VERSION,  "The version of the SourceMod plugin JailBreak Warden.", FCVAR_SPONLY|FCVAR_DONTRECORD|FCVAR_REPLICATED|FCVAR_NOTIFY);
@@ -403,6 +404,16 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool bDontBroad
             PrintCenterTextAll("%t", "warden_dead", Warden);
         }
         RemoveTheWarden(iClient, false);
+    }
+    
+    if (conVarKeepPlayerColor.BoolValue && IsValidClient(iClient)) {
+        int r, g, b, a;
+        GetEntityRenderColor(iClient, r, g, b, a);
+        
+        int iRagdoll = GetEntPropEnt(client, Prop_Send, "m_hRagdoll");
+        if (iRagdoll != -1) {
+            SetEntityRenderColor(iRagdoll, r, g, b, a);
+        }
     }
     
     return Plugin_Continue;
