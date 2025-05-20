@@ -410,7 +410,7 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool bDontBroad
         int r, g, b, a;
         GetEntityRenderColor(iClient, r, g, b, a);
         
-        int iRagdoll = GetEntPropEnt(client, Prop_Send, "m_hRagdoll");
+        int iRagdoll = GetEntPropEnt(iClient, Prop_Send, "m_hRagdoll");
         if (iRagdoll != -1) {
             SetEntityRenderColor(iRagdoll, r, g, b, a);
         }
