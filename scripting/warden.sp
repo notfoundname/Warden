@@ -407,16 +407,21 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool bDontBroad
     }
     
     if (conVarKeepPlayerColor.BoolValue && IsValidClient(iClient)) {
-        int r, g, b, a;
-        GetEntityRenderColor(iClient, r, g, b, a);
-        
-        int iRagdoll = GetEntPropEnt(iClient, Prop_Send, "m_hRagdoll");
-        if (iRagdoll != -1) {
-            SetEntityRenderColor(iRagdoll, r, g, b, a);
-        }
+        CreateTimer(0.01,KeepPlayerColorTimer, iClient); 
     }
     
     return Plugin_Continue;
+}
+
+public void KeepPlayerColorTimer(Handle hTimer, int iClient) {
+    int iRagdoll = GetEntPropEnt(iClient, Prop_Send, "m_hRagdoll");
+    if (iRagdoll < 0 || !IsValidEdict(iRagdoll)) {
+        return;
+    }
+    
+    int r, g, b, a;
+    GetEntityRenderColor(iClient, r, g, b, a);
+    SetEntityRenderColor(iRagdoll, r, g, b, a);
 }
 
 public void OnClientDisconnect(int iClient) {
