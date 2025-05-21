@@ -19,6 +19,7 @@ int Warden = -1;
 
 bool bNoblock = true;
 ConVar conVarMpFriendlyFire;
+ConVar conVarSvAutoBunnyHopping;
 Handle hMuteTimer = null;
 Menu hWardenMenu = null;
 bool bWardenMenuOpened = false;
@@ -60,6 +61,10 @@ public void OnPluginStart() {
     conVarMpFriendlyFire = FindConVar("mp_friendlyfire");
     RegConsoleCmd("sm_wfriendlyfire", FriendlyFire);
     RegConsoleCmd("sm_wff", FriendlyFire);
+    
+    conVarSvAutoBunnyHopping = FindConVar("sv_autobunnyhopping");
+    RegConsoleCmd("sm_wbhop", AutoBunnyHopping);
+    RegConsoleCmd("sm_wbh", AutoBunnyHopping);
     
     RegConsoleCmd("sm_wsplitplayers", SplitPlayers);
     RegConsoleCmd("sm_wsp", SplitPlayers);
@@ -246,11 +251,26 @@ public Action FriendlyFire(int iClient, int iArgs) {
     return Plugin_Handled;
 }
 
+// sm_wbhop / sm_wbh.
+public Action AutoBunnyHopping(int iClient, int iArgs) {
+    // Make sure executor is the Warden.
+    if (iClient == Warden) {
+        conVarSvAutoBunnyHopping.SetBool(!conVarSvAutoBunnyHopping.BoolValue, true, false);
+        CPrintToChatAll(TRANSLATION_PREFIX,
+                conVarSvAutoBunnyHopping.BoolValue ? "warden_bhop_enabled" : "warden_bhop_disabled");
+    } else {
+        CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
+    }
+    
+    return Plugin_Handled;
+}
+
 // sm_wsp / sm_wsplitplayers
 public Action SplitPlayers(int iClient, int iArgs) {
     // Make sure executor is the Warden.
     if (iClient == Warden) {
         bool bRed = true;
+        int playerCount = 0;
         if (conVarSplitPlayersRadius.FloatValue <= 0.0) {
             for (int i = 1; i <= MaxClients; i++) {
                 // If our client is valid then put him into a team.
@@ -259,6 +279,7 @@ public Action SplitPlayers(int iClient, int iArgs) {
                     CPrintToChat(i, TRANSLATION_PREFIX, "warden_team_chosen", 
                             bRed ? "warden_team_red" : "warden_team_blue");
                     bRed = !bRed;
+                    playerCount++;
                 }
             }
         } else {
@@ -277,10 +298,15 @@ public Action SplitPlayers(int iClient, int iArgs) {
                     CPrintToChat(iEntity, TRANSLATION_PREFIX, "warden_team_chosen", 
                             bRed ? "warden_team_red" : "warden_team_blue");
                     bRed = !bRed;
+                    playerCount++;
                 }
             }
         }
-        CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_team_split");
+        if (playerCount != 0) {
+            CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_team_split");
+        } else {
+            CPrintToChat(iClient, TRANSLATION_PREFIX, "No matching client");
+        }
     }
     return Plugin_Handled;
 }
@@ -397,6 +423,12 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool bDontBroad
     // Get the dead client's id.
     int iClient = GetClientOfUserId(GetEventInt(event, "userid"));
     
+    CPrintToChat(iClient, TRANSLATION_PREFIX, IsValidClient(iClient) ? "{green}Valid client" : "{red}no balls!");
+    
+    if (conVarKeepPlayerColor.BoolValue && IsValidClient(iClient)) {
+        CreateTimer(0.05, KeepPlayerColorTimer, GetClientUserId(iClient)); 
+    }
+    
     // Aww damn, he is the warden.
     if (iClient == Warden) {
         CPrintToChatAll(TRANSLATION_PREFIX, "warden_dead", Warden);
@@ -406,22 +438,25 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool bDontBroad
         RemoveTheWarden(iClient, false);
     }
     
-    if (conVarKeepPlayerColor.BoolValue && IsValidClient(iClient)) {
-        CreateTimer(0.01,KeepPlayerColorTimer, iClient); 
-    }
-    
     return Plugin_Continue;
 }
 
-public void KeepPlayerColorTimer(Handle hTimer, int iClient) {
-    int iRagdoll = GetEntPropEnt(iClient, Prop_Send, "m_hRagdoll");
-    if (iRagdoll < 0 || !IsValidEdict(iRagdoll)) {
-        return;
-    }
+public void KeepPlayerColorTimer(Handle hTimer, int userID) {
+    int iClient = GetClientOfUserId(userID);
     
-    int r, g, b, a;
-    GetEntityRenderColor(iClient, r, g, b, a);
-    SetEntityRenderColor(iRagdoll, r, g, b, a);
+    if (iClient) {
+        int iRagdoll = GetEntPropEnt(iClient, Prop_Send, "m_hRagdoll");
+        if (iRagdoll < 0 || !IsValidEdict(iRagdoll)) {
+            CPrintToChat(iClient, TRANSLATION_PREFIX, "{red}Ragdoll not found!");
+            return;
+        }
+    
+        CPrintToChat(iClient, TRANSLATION_PREFIX, "{green}Ragdoll found!");
+    
+        int r, g, b, a;
+        GetEntityRenderColor(iClient, r, g, b, a);
+        SetEntityRenderColor(iRagdoll, r, g, b, a);
+    }
 }
 
 public void OnClientDisconnect(int iClient) {
@@ -479,6 +514,10 @@ public void WardenMenu_Refresh() {
             conVarMpFriendlyFire.BoolValue ? "warden_enabled" : "warden_disabled");
     hWardenMenu.AddItem("warden_menu_friendlyfire", szBuffer);
     
+    Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_bhop", Warden, 
+            conVarSvAutoBunnyHopping.BoolValue ? "warden_enabled" : "warden_disabled");
+    hWardenMenu.AddItem("warden_menu_bhop", szBuffer);
+    
     Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_mute", Warden, conVarMuteTime.FloatValue, 
             IsValidHandle(hMuteTimer) ? "warden_enabled" : "warden_disabled");
     hWardenMenu.AddItem("warden_menu_mute", szBuffer);
@@ -510,6 +549,10 @@ public void WardenMenu_Handler(Menu hMenu, MenuAction action, int iClient, int i
             
             if (strcmp("warden_menu_friendlyfire", szItem, false) == 0) {
                 FriendlyFire(iClient, 0);
+            }
+            
+            if (strcmp("warden_menu_bhop", szItem, false) == 0) {
+                AutoBunnyHopping(iClient, 0);
             }
             
             if (strcmp("warden_menu_mute", szItem, false) == 0) {

@@ -102,6 +102,18 @@
 		"ru"		"Огонь по своим был выключен!"
 	}
 	
+	"warden_bhop_enabled"
+	{
+		"en"		"Auto Bunny Hopping has been enabled!"
+		"ru"		"Автораспрыжка была включена!"
+	}
+	
+	"warden_bhop_disabled"
+	{
+		"en"		"Auto Bunny Hopping has been disabled!"
+		"ru"		"Автораспрыжка была выключена!"
+	}
+	
 	"warden_mute_enabled"
 	{
 		"#format"	"{1:.1f}"
@@ -170,6 +182,13 @@
 		"#format"	"{1:t}"
 		"en"		"Friendly Fire: {1}"
 		"ru"		"Огонь по своим: {1}"
+	}
+	
+	"warden_menu_bhop"
+	{
+		"#format"	"{1:t}"
+		"en"		"Bhop: {1}"
+		"ru"		"Бхоп: {1}"
 	}
 	
 	"warden_menu_mute"
