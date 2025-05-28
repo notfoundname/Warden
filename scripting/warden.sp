@@ -24,7 +24,12 @@ Handle hMuteTimer = null;
 Menu hWardenMenu = null;
 bool bWardenMenuOpened = false;
 
-ConVar conVarBetterNotifications, conVarMuteTime, conVarNoblockDefault, conVarSplitPlayersRadius, conVarKeepPlayerColor;
+ConVar conVarBetterNotifications, 
+    conVarMuteTime,
+    conVarNoblockDefault,
+    conVarBhopDefault,
+    conVarSplitPlayersRadius,
+    conVarKeepPlayerColor;
 Handle forwardOnWardenCreation, forwardOnWardenRemoved;
 
 public Plugin myinfo = {
@@ -96,7 +101,8 @@ public void OnPluginStart() {
     conVarBetterNotifications = CreateConVar("sm_warden_better_notifications", "1", "0 - disabled, 1 - Will display center text.", FCVAR_NONE, true, 0.0, true, 1.0);
     conVarMuteTime = CreateConVar("sm_warden_mute_time", "20", "For how long warden can mute players.", FCVAR_NONE, true, 5.0, true, 60.0);
     conVarNoblockDefault = CreateConVar("sm_warden_noblock_default", "1", "0 - start with player collisions, 1 - start with no collisions.", FCVAR_NONE, true, 0.0, true, 1.0);
-    conVarSplitPlayersRadius = CreateConVar("sm_warden_splitplayers_radius", "256", "Radius of searching for splitting players into two teams. 0 to not care.", FCVAR_NONE, true, 0.0, true, 2048.0);
+    conVarBhopDefault = CreateConVar("sm_warden_bhop_default", "0", "0 - start with no bhop, 1 - start with bhop.", FCVAR_NONE, true, 0.0, true, 1.0);
+    conVarSplitPlayersRadius = CreateConVar("sm_warden_splitplayers_radius", "512", "Radius of searching for splitting players into two teams. 0 to not care.", FCVAR_NONE, true, 0.0, true, 4096.0);
     conVarKeepPlayerColor = CreateConVar("sm_warden_keep_player_color", "1", "Enable to make client-side ragdolls keep player's custom color.", FCVAR_NONE, true, 0.0, true, 1.0);
     
     // May not touch this line.
@@ -244,6 +250,7 @@ public Action FriendlyFire(int iClient, int iArgs) {
         conVarMpFriendlyFire.SetBool(!conVarMpFriendlyFire.BoolValue, true, false);
         CPrintToChatAll(TRANSLATION_PREFIX,
                 conVarMpFriendlyFire.BoolValue ? "warden_friendlyfire_enabled" : "warden_friendlyfire_disabled");
+        EmitSoundToAll(conVarMpFriendlyFire.BoolValue ? "vo\npc\female01\runforyourlife01.wav" : "buttons/weapon_cant_buy.wav")
     } else {
         CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
     }
@@ -415,6 +422,7 @@ public Action Event_RoundStart(Handle event, const char[] name, bool bDontBroadc
     }
     
     conVarMpFriendlyFire.SetBool(false, true, false);
+    conVarSvAutoBunnyHopping.SetBool(conVarBhopDefault.BoolValue, true, false);
     
     return Plugin_Continue;
 }
@@ -422,12 +430,6 @@ public Action Event_RoundStart(Handle event, const char[] name, bool bDontBroadc
 public Action Event_PlayerDeath(Handle event, const char[] name, bool bDontBroadcast) {
     // Get the dead client's id.
     int iClient = GetClientOfUserId(GetEventInt(event, "userid"));
-    
-    CPrintToChat(iClient, TRANSLATION_PREFIX, IsValidClient(iClient) ? "{green}Valid client" : "{red}no balls!");
-    
-    if (conVarKeepPlayerColor.BoolValue && IsValidClient(iClient)) {
-        CreateTimer(0.05, KeepPlayerColorTimer, GetClientUserId(iClient)); 
-    }
     
     // Aww damn, he is the warden.
     if (iClient == Warden) {
@@ -439,24 +441,6 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool bDontBroad
     }
     
     return Plugin_Continue;
-}
-
-public void KeepPlayerColorTimer(Handle hTimer, int userID) {
-    int iClient = GetClientOfUserId(userID);
-    
-    if (iClient) {
-        int iRagdoll = GetEntPropEnt(iClient, Prop_Send, "m_hRagdoll");
-        if (iRagdoll < 0 || !IsValidEdict(iRagdoll)) {
-            CPrintToChat(iClient, TRANSLATION_PREFIX, "{red}Ragdoll not found!");
-            return;
-        }
-    
-        CPrintToChat(iClient, TRANSLATION_PREFIX, "{green}Ragdoll found!");
-    
-        int r, g, b, a;
-        GetEntityRenderColor(iClient, r, g, b, a);
-        SetEntityRenderColor(iRagdoll, r, g, b, a);
-    }
 }
 
 public void OnClientDisconnect(int iClient) {

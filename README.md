@@ -19,11 +19,13 @@ Looked up a lot of stuff from [destoer's plugin](https://github.com/destoer/coun
 # ConVars
 | Name | Default Value | Value Type | Description |
 |---|---|---|---|
-| `sm_warden_version` | `PLUGIN_VERSION` | `String` | The version of the SourceMod plugin JailBreak Warden. |
 | `sm_warden_better_notifications` | `1` | `bool` | 0 - disabled, 1 - Will display center text. |
 | `sm_warden_mute_time` | `20` | `float` | For how long warden can mute players. |
 | `sm_warden_noblock_default` | `1` | `bool` | 0 - start with player collisions, 1 - start with no collisions. |
-| `sm_warden_splitplayers_radius` | `256` | `float` | Radius of searching for splitting players into two teams. 0 to not care. |
+| `sm_warden_bhop_default` | `0` | `bool` | 0 - start with no bhop, 1 - start with bhop. |
+| `sm_warden_splitplayers_radius` | `512` | `float` | Radius of searching for splitting players into two teams. 0 to not care. |
+| `sm_warden_bhop_default` | `1` | `bool` | 0 - start with no bhop, 1 - start with bhop. |
+| `sm_warden_version` | `PLUGIN_VERSION` | `String` | The version of the SourceMod plugin JailBreak Warden. |
 
 # Commands
 | Name | Arguments | Permission | Description |
