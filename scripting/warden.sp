@@ -105,6 +105,10 @@ public void OnPluginStart() {
     conVarSplitPlayersRadius = CreateConVar("sm_warden_splitplayers_radius", "512", "Radius of searching for splitting players into two teams. 0 to not care.", FCVAR_NONE, true, 0.0, true, 4096.0);
     conVarKeepPlayerColor = CreateConVar("sm_warden_keep_player_color", "1", "Enable to make client-side ragdolls keep player's custom color.", FCVAR_NONE, true, 0.0, true, 1.0);
     
+    // Precache sounds.
+    PrecacheSound("vo\npc\female01\runforyourlife01.wav", true);
+    PrecacheSound("buttons/weapon_cant_buy.wav", true);
+    
     // May not touch this line.
     CreateConVar("sm_warden_version", PLUGIN_VERSION,  "The version of the SourceMod plugin JailBreak Warden.", FCVAR_SPONLY|FCVAR_DONTRECORD|FCVAR_REPLICATED|FCVAR_NOTIFY);
 }
