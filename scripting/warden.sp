@@ -250,7 +250,7 @@ public Action FriendlyFire(int iClient, int iArgs) {
         conVarMpFriendlyFire.SetBool(!conVarMpFriendlyFire.BoolValue, true, false);
         CPrintToChatAll(TRANSLATION_PREFIX,
                 conVarMpFriendlyFire.BoolValue ? "warden_friendlyfire_enabled" : "warden_friendlyfire_disabled");
-        EmitSoundToAll(conVarMpFriendlyFire.BoolValue ? "vo\npc\female01\runforyourlife01.wav" : "buttons/weapon_cant_buy.wav")
+        EmitSoundToAll(conVarMpFriendlyFire.BoolValue ? "vo\npc\female01\runforyourlife01.wav" : "buttons/weapon_cant_buy.wav");
     } else {
         CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
     }
