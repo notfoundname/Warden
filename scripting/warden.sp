@@ -106,7 +106,7 @@ public void OnPluginStart() {
     conVarKeepPlayerColor = CreateConVar("sm_warden_keep_player_color", "1", "Enable to make client-side ragdolls keep player's custom color.", FCVAR_NONE, true, 0.0, true, 1.0);
     
     // Precache sounds.
-    PrecacheSound("vo\npc\female01\runforyourlife01.wav", true);
+    PrecacheSound("vo/npc/female01/runforyourlife01.wav", true);
     PrecacheSound("buttons/weapon_cant_buy.wav", true);
     
     // May not touch this line.
@@ -254,7 +254,7 @@ public Action FriendlyFire(int iClient, int iArgs) {
         conVarMpFriendlyFire.SetBool(!conVarMpFriendlyFire.BoolValue, true, false);
         CPrintToChatAll(TRANSLATION_PREFIX,
                 conVarMpFriendlyFire.BoolValue ? "warden_friendlyfire_enabled" : "warden_friendlyfire_disabled");
-        EmitSoundToAll(conVarMpFriendlyFire.BoolValue ? "vo\npc\female01\runforyourlife01.wav" : "buttons/weapon_cant_buy.wav");
+        EmitSoundToAll(conVarMpFriendlyFire.BoolValue ? "vo/npc/female01/runforyourlife01.wav" : "buttons/weapon_cant_buy.wav");
     } else {
         CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
     }
