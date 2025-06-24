@@ -399,13 +399,23 @@ public Action RemoveWarden(int iClient, int iArgs) {
 
 Action DisplayCurrentWarden(Handle hTimer) {
     Handle hHudMessage = CreateHudSynchronizer();
-    SetHudTextParams(1.5, -1.7, 1.0, 255, 255, 255, 255);
     
+    if (IsValidClient(Warden)) {
+        SetHudTextParams(1.5, -1.7, 1.0, 173, 216, 230, 255);
+    } else {
+        SetHudTextParams(1.5, -1.7, 1.0, 255, 0, 0, 255);
+    }
+
     for (int i = 1; i <= MaxClients; i++) {
         if (IsValidClient(i)) {
-            char szBuffer[256], wardenName[64];
-            GetClientName(Warden, wardenName, sizeof(wardenName));
-            Format(szBuffer, sizeof(szBuffer), "%T  ", Warden != -1 ? "warden_exist" : "warden_missing", i, wardenName);
+            char szBuffer[256];
+
+            if (IsValidClient(Warden)) {
+                Format(szBuffer, sizeof(szBuffer), "%T  ", "warden_exist", i, Warden);
+            } else {
+                Format(szBuffer, sizeof(szBuffer), "%T  ", "warden_missing", i);
+            }
+            
             ShowSyncHudText(i, hHudMessage, szBuffer);
         }
     }
