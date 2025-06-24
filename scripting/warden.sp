@@ -29,7 +29,7 @@ ConVar conVarBetterNotifications,
     conVarNoblockDefault,
     conVarBhopDefault,
     conVarSplitPlayersRadius,
-    conVarKeepPlayerColor;
+    conVarEnhanceRagdolls;
 Handle forwardOnWardenCreation, forwardOnWardenRemoved;
 
 public Plugin myinfo = {
@@ -103,14 +103,17 @@ public void OnPluginStart() {
     conVarNoblockDefault = CreateConVar("sm_warden_noblock_default", "1", "0 - start with player collisions, 1 - start with no collisions.", FCVAR_NONE, true, 0.0, true, 1.0);
     conVarBhopDefault = CreateConVar("sm_warden_bhop_default", "0", "0 - start with no bhop, 1 - start with bhop.", FCVAR_NONE, true, 0.0, true, 1.0);
     conVarSplitPlayersRadius = CreateConVar("sm_warden_splitplayers_radius", "512", "Radius of searching for splitting players into two teams. 0 to not care.", FCVAR_NONE, true, 0.0, true, 4096.0);
-    conVarKeepPlayerColor = CreateConVar("sm_warden_keep_player_color", "1", "Enable to make client-side ragdolls keep player's custom color.", FCVAR_NONE, true, 0.0, true, 1.0);
+    conVarEnhanceRagdolls = CreateConVar("sm_warden_enhance_ragdolls", "1", "Enable to make client-side ragdolls keep player's information (like color and gravity).", FCVAR_NONE, true, 0.0, true, 1.0);
     
+    // Initialize config.
+    AutoExecConfig(true);
+
     // Precache sounds.
     PrecacheSound("vo/npc/female01/runforyourlife01.wav", true);
     PrecacheSound("buttons/weapon_cant_buy.wav", true);
     
     // May not touch this line.
-    CreateConVar("sm_warden_version", PLUGIN_VERSION,  "The version of the SourceMod plugin JailBreak Warden.", FCVAR_SPONLY|FCVAR_DONTRECORD|FCVAR_REPLICATED|FCVAR_NOTIFY);
+    CreateConVar("sm_warden_version", PLUGIN_VERSION, "The version of the SourceMod plugin JailBreak Warden.", FCVAR_SPONLY|FCVAR_DONTRECORD|FCVAR_REPLICATED|FCVAR_NOTIFY);
 }
 
 // ---
@@ -170,11 +173,11 @@ public Action ExitWarden(int iClient, int iArgs) {
 
 // sm_noblock / sm_nb.
 public Action ToggleNoblock(int iClient, int iArgs) {
-    // Make sure executor is the Warden.
-    if (iClient != Warden) {
+    // Make sure executor is the Warden or an admin.
+    if (!(iClient == Warden || GetAdminFlag(GetUserAdmin(iClient), ADMFLAG_GENERIC, Access_Real))) {
         CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
         return Plugin_Handled;
-    }   
+    }
     
     // Toggle the value and apply it.
     bNoblock = !bNoblock;
@@ -200,18 +203,18 @@ public void PlayerApplyNoblock(int iClient, bool bCommand) {
 
 // sm_wmute / sm_wm.
 public Action TempMute(int iClient, int iArgs) {
-    // Make sure executor is the Warden.
-    if (iClient == Warden) {
-        // If the timer is active then force it to trigger.
-        if (IsValidHandle(hMuteTimer)) {
-            TriggerTimer(hMuteTimer, true);
-        } else {
-            MuteTerrorists(conVarMuteTime.FloatValue);
-        }
-    } else {
+    // Make sure executor is the Warden or an admin.
+    if (!(iClient == Warden || GetAdminFlag(GetUserAdmin(iClient), ADMFLAG_GENERIC, Access_Real))) {
         CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
+        return Plugin_Handled;
     }
-    
+
+    // If the timer is active then force it to trigger.
+    if (IsValidHandle(hMuteTimer)) {
+        TriggerTimer(hMuteTimer, true);
+    } else {
+        MuteTerrorists(conVarMuteTime.FloatValue);
+    }
     return Plugin_Handled;
 }
 
@@ -249,76 +252,82 @@ public void UnmuteTerrorists() {
 
 // sm_wmute / sm_wm.
 public Action FriendlyFire(int iClient, int iArgs) {
-    // Make sure executor is the Warden.
-    if (iClient == Warden) {
-        conVarMpFriendlyFire.SetBool(!conVarMpFriendlyFire.BoolValue, true, false);
-        CPrintToChatAll(TRANSLATION_PREFIX,
-                conVarMpFriendlyFire.BoolValue ? "warden_friendlyfire_enabled" : "warden_friendlyfire_disabled");
-        EmitSoundToAll(conVarMpFriendlyFire.BoolValue ? "vo/npc/female01/runforyourlife01.wav" : "buttons/weapon_cant_buy.wav");
-    } else {
+    // Make sure executor is the Warden or an admin.
+    if (!(iClient == Warden || GetAdminFlag(GetUserAdmin(iClient), ADMFLAG_GENERIC, Access_Real))) {
         CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
+        return Plugin_Handled;
     }
     
+    conVarMpFriendlyFire.SetBool(!conVarMpFriendlyFire.BoolValue, true, false);
+    CPrintToChatAll(TRANSLATION_PREFIX,
+            conVarMpFriendlyFire.BoolValue ? "warden_friendlyfire_enabled" : "warden_friendlyfire_disabled");
+    EmitSoundToAll(conVarMpFriendlyFire.BoolValue ? "vo/npc/female01/runforyourlife01.wav" : "buttons/weapon_cant_buy.wav");
+
     return Plugin_Handled;
 }
 
 // sm_wbhop / sm_wbh.
 public Action AutoBunnyHopping(int iClient, int iArgs) {
-    // Make sure executor is the Warden.
-    if (iClient == Warden) {
-        conVarSvAutoBunnyHopping.SetBool(!conVarSvAutoBunnyHopping.BoolValue, true, false);
+    // Make sure executor is the Warden or an admin.
+    if (!(iClient == Warden || GetAdminFlag(GetUserAdmin(iClient), ADMFLAG_GENERIC, Access_Real))) {
+        CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
+        return Plugin_Handled;
+    }
+
+    conVarSvAutoBunnyHopping.SetBool(!conVarSvAutoBunnyHopping.BoolValue, true, false);
         CPrintToChatAll(TRANSLATION_PREFIX,
                 conVarSvAutoBunnyHopping.BoolValue ? "warden_bhop_enabled" : "warden_bhop_disabled");
-    } else {
-        CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
-    }
     
     return Plugin_Handled;
 }
 
 // sm_wsp / sm_wsplitplayers
 public Action SplitPlayers(int iClient, int iArgs) {
-    // Make sure executor is the Warden.
-    if (iClient == Warden) {
-        bool bRed = true;
-        int playerCount = 0;
-        if (conVarSplitPlayersRadius.FloatValue <= 0.0) {
-            for (int i = 1; i <= MaxClients; i++) {
-                // If our client is valid then put him into a team.
-                if (IsValidClient(i) && IsPlayerAlive(i) && GetClientTeam(i) == CS_TEAM_T) {
-                    SetEntityRenderColor(i, bRed ? 255 : 0, 0, bRed ? 0 : 255, 255);
-                    CPrintToChat(i, TRANSLATION_PREFIX, "warden_team_chosen", 
-                            bRed ? "warden_team_red" : "warden_team_blue");
-                    bRed = !bRed;
-                    playerCount++;
-                }
-            }
-        } else {
-            ArrayList entities = new ArrayList();
-            float fOrigin[3];
-            GetClientEyePosition(iClient, fOrigin);
-        
-            TR_EnumerateEntitiesSphere(fOrigin, conVarSplitPlayersRadius.FloatValue, PARTITION_NON_STATIC_EDICTS, AddEntities, entities);
-            
-            for (int i = 0; i < entities.Length; i++) {
-                int iEntity = entities.Get(i);
-            
-                // If our client is valid then put him into a team.
-                if (IsValidClient(iEntity) && IsPlayerAlive(iEntity) && GetClientTeam(iEntity) == CS_TEAM_T) {
-                    SetEntityRenderColor(iEntity, bRed ? 255 : 0, 0, bRed ? 0 : 255, 255);
-                    CPrintToChat(iEntity, TRANSLATION_PREFIX, "warden_team_chosen", 
-                            bRed ? "warden_team_red" : "warden_team_blue");
-                    bRed = !bRed;
-                    playerCount++;
-                }
+    // Make sure executor is the Warden or an admin.
+    if (!(iClient == Warden || GetAdminFlag(GetUserAdmin(iClient), ADMFLAG_GENERIC, Access_Real))) {
+        CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
+        return Plugin_Handled;
+    }
+
+    bool bRed = true;
+    int playerCount = 0;
+    if (conVarSplitPlayersRadius.FloatValue <= 0.0) {
+        for (int i = 1; i <= MaxClients; i++) {
+            // If our client is valid then put him into a team.
+            if (IsValidClient(i) && IsPlayerAlive(i) && GetClientTeam(i) == CS_TEAM_T) {
+                SetEntityRenderColor(i, bRed ? 255 : 0, 0, bRed ? 0 : 255, 255);
+                CPrintToChat(i, TRANSLATION_PREFIX, "warden_team_chosen", 
+                        bRed ? "warden_team_red" : "warden_team_blue");
+                bRed = !bRed;
+                playerCount++;
             }
         }
-        if (playerCount != 0) {
-            CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_team_split");
-        } else {
-            CPrintToChat(iClient, TRANSLATION_PREFIX, "No matching client");
+    } else {
+        ArrayList entities = new ArrayList();
+        float fOrigin[3];
+        GetClientEyePosition(iClient, fOrigin);
+    
+        TR_EnumerateEntitiesSphere(fOrigin, conVarSplitPlayersRadius.FloatValue, PARTITION_NON_STATIC_EDICTS, AddEntities, entities);
+        
+        for (int i = 0; i < entities.Length; i++) {
+            int iEntity = entities.Get(i);
+        
+            // If our client is valid then put him into a team.
+            if (IsValidClient(iEntity) && IsPlayerAlive(iEntity) && GetClientTeam(iEntity) == CS_TEAM_T) {
+                SetEntityRenderColor(iEntity, bRed ? 255 : 0, 0, bRed ? 0 : 255, 255);
+                CPrintToChat(iEntity, TRANSLATION_PREFIX, "warden_team_chosen", 
+                        bRed ? "warden_team_red" : "warden_team_blue");
+                bRed = !bRed;
+                playerCount++;
+            }
         }
     }
+    if (playerCount != 0) {
+        CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_team_split");
+    } else {
+        CPrintToChat(iClient, TRANSLATION_PREFIX, "No matching client");
+    }
+    
     return Plugin_Handled;
 }
 
@@ -394,9 +403,10 @@ Action DisplayCurrentWarden(Handle hTimer) {
     
     for (int i = 1; i <= MaxClients; i++) {
         if (IsValidClient(i)) {
-            char buf[256];
-            Format(buf, sizeof(buf), "%t  ", Warden != -1 ? "warden_exist" : "warden_missing", Warden);
-            ShowSyncHudText(i, hHudMessage, buf);
+            char szBuffer[256], wardenName[64];
+            GetClientName(Warden, wardenName, sizeof(wardenName));
+            Format(szBuffer, sizeof(szBuffer), "%T  ", Warden != -1 ? "warden_exist" : "warden_missing", i, wardenName);
+            ShowSyncHudText(i, hHudMessage, szBuffer);
         }
     }
     
@@ -435,6 +445,10 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool bDontBroad
     // Get the dead client's id.
     int iClient = GetClientOfUserId(GetEventInt(event, "userid"));
     
+    if (!IsValidClient(iClient)) {
+        return Plugin_Continue;
+    }
+
     // Aww damn, he is the warden.
     if (iClient == Warden) {
         CPrintToChatAll(TRANSLATION_PREFIX, "warden_dead", Warden);
@@ -442,6 +456,20 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool bDontBroad
             PrintCenterTextAll("%t", "warden_dead", Warden);
         }
         RemoveTheWarden(iClient, false);
+    }
+
+    if (conVarEnhanceRagdolls.BoolValue) {
+        int iRagdoll = GetEntPropEnt(iClient, Prop_Send, "m_hRagdoll");
+
+        if (iRagdoll > 0 && IsValidEdict(iRagdoll)) {
+            int iColor[4];
+            float fGravity = GetEntPropFloat(iClient, Prop_Send, "m_flGravity");
+            GetEntityRenderColor(iClient, iColor[0], iColor[1], iColor[2], iColor[3]);
+
+            SetEntProp(iRagdoll, Prop_Send, "m_nRenderMode", 1);
+            SetEntProp(iRagdoll, Prop_Send, "m_clrRender", iColor);
+            SetEntPropFloat(iRagdoll, Prop_Send, "m_flGravity", fGravity);
+        }
     }
     
     return Plugin_Continue;

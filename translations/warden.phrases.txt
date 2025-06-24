@@ -21,7 +21,7 @@
 	
 	"warden_exist"
 	{
-		"#format"	"{1:N}"
+		"#format"	"{1:s}"
 		"en"		"Warden: {1}"
 		"ru"		"Командир: {1}"
 	}

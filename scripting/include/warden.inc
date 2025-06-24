@@ -1,10 +1,10 @@
 #if defined _warden_included
-  #endinput
+    #endinput
 #endif
 #define _warden_included
 
 stock bool IsValidClient(int iClient) {
-	return iClient && IsValidEntity(iClient) && 1 <= iClient <= MaxClients && IsClientInGame(iClient);
+    return iClient && IsValidEntity(iClient) && 1 <= iClient <= MaxClients && IsClientInGame(iClient);
 }
 
 /**
