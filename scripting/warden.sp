@@ -473,12 +473,16 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool bDontBroad
 
         if (iRagdoll > 0 && IsValidEdict(iRagdoll)) {
             int iColor[4];
-            float fGravity = GetEntPropFloat(iClient, Prop_Send, "m_flGravity");
+            float fGravity = GetEntityGravity(iClient);
             GetEntityRenderColor(iClient, iColor[0], iColor[1], iColor[2], iColor[3]);
 
             SetEntProp(iRagdoll, Prop_Send, "m_nRenderMode", 1);
             SetEntProp(iRagdoll, Prop_Send, "m_clrRender", iColor);
+            SetEntityRenderMode(iRagdoll, RENDER_TRANSCOLOR);
+            SetEntityRenderColor(iRagdoll, iColor[0], iColor[1], iColor[2], iColor[3]);
+
             SetEntPropFloat(iRagdoll, Prop_Send, "m_flGravity", fGravity);
+            SetEntityGravity(iRagdoll, fGravity);
         }
     }
     
@@ -509,7 +513,7 @@ public Action HookPlayerChat(int iClient, const char[] command, int argc) {
         
         if (IsClientInGame(iClient) && IsPlayerAlive(iClient) && GetClientTeam(iClient) == CS_TEAM_CT) {
             // Typing warden is alive and his team is Counter-Terrorist.
-            CPrintToChatAll(TRANSLATION_PREFIX, "{blue}%N{white}: %s", iClient, szText);
+            CPrintToChatAll("{blue}%N{white}: %s", iClient, szText);
             return Plugin_Handled;
         }
     }
