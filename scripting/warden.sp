@@ -476,13 +476,9 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool bDontBroad
             float fGravity = GetEntityGravity(iClient);
             GetEntityRenderColor(iClient, iColor[0], iColor[1], iColor[2], iColor[3]);
 
-            SetEntProp(iRagdoll, Prop_Send, "m_nRenderMode", 1);
-            SetEntProp(iRagdoll, Prop_Send, "m_clrRender", iColor);
-            SetEntityRenderMode(iRagdoll, RENDER_TRANSCOLOR);
-            SetEntityRenderColor(iRagdoll, iColor[0], iColor[1], iColor[2], iColor[3]);
-
-            SetEntPropFloat(iRagdoll, Prop_Send, "m_flGravity", fGravity);
-            SetEntityGravity(iRagdoll, fGravity);
+            SetEntProp(iRagdoll, Prop_Data, "m_nRenderMode", 1);
+            SetEntProp(iRagdoll, Prop_Data, "m_clrRender", iColor);
+            SetEntPropFloat(iRagdoll, Prop_Data, "m_flGravity", fGravity);
         }
     }
     
