@@ -58,6 +58,10 @@ public void OnPluginStart() {
     // Register Warden-only commands.
     RegConsoleCmd("sm_wnoblock", ToggleNoblock);
     RegConsoleCmd("sm_wnb", ToggleNoblock);
+    ConVar conVarHostiesNoBlock = FindConVar("sm_hosties_noblock_enable");
+    if (conVarHostiesNoBlock != null) {
+        conVarHostiesNoBlock.BoolValue = false;
+    }
     
     RegConsoleCmd("sm_wmute", TempMute);
     RegConsoleCmd("sm_wm", TempMute);
@@ -95,6 +99,7 @@ public void OnPluginStart() {
     // Hooking the events.
     HookEvent("round_start", Event_RoundStart); // For the round start
     HookEvent("player_death", Event_PlayerDeath, EventHookMode_Pre); // To check when our warden dies :)
+    HookEvent("player_spawn", Event_PlayerSpawn);
     
     // Console variables.
     conVarBetterNotifications = CreateConVar("sm_warden_better_notifications", "1", "0 - disabled, 1 - Will display center text.", FCVAR_NONE, true, 0.0, true, 1.0);
@@ -123,7 +128,7 @@ public Action BecomeWarden(int iClient, int iArgs) {
     if (Warden != -1) {
         // The warden already exist so there is no point setting a new one
         if (iClient == Warden) {
-            WardenMenu_Refresh();
+            WardenMenu_Refresh(iClient);
         } else {
             CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_exist", Warden);
         }
@@ -221,7 +226,7 @@ public void TempMuteTimer(Handle timer) {
     // Doing this to update the menu.
     hMuteTimer = null;
     if (bWardenMenuOpened) {
-        WardenMenu_Refresh();
+        WardenMenu_Refresh(Warden);
     }
 }
 
@@ -431,12 +436,6 @@ public Action Event_RoundStart(Handle event, const char[] name, bool bDontBroadc
     Warden = -1;
     
     bNoblock = conVarNoblockDefault.BoolValue;
-    for (int i = 1; i <= MaxClients; i++) {
-        if (IsValidClient(i)) {
-            PlayerApplyNoblock(i, false);
-            SetEntityRenderColor(i, 255, 255, 255, 255);
-        }
-    }
     
     // If the timer is active then kill it (don't trigger it).
     if (IsValidHandle(hMuteTimer)) {
@@ -467,6 +466,13 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool bDontBroad
     }
     
     return Plugin_Continue;
+}
+
+public Action Event_PlayerSpawn(Handle event, const char[] name, bool bDontBroadcast) {
+    int iClient = GetClientOfUserId(GetEventInt(event, "userid"));
+    if (IsValidClient(iClient)) {
+        PlayerApplyNoblock(iClient, false);
+    }
 }
 
 public void OnClientDisconnect(int iClient) {
@@ -502,40 +508,40 @@ public Action WardenSay(int iClient, int iArgs) {
 // Menus.
 // ---
 
-public void WardenMenu_Refresh() {
-    if (!IsValidHandle(hWardenMenu) || Warden == -1) {
+public void WardenMenu_Refresh(int iClient) {
+    if (!IsValidHandle(hWardenMenu) || iClient == -1) {
         return;
     }
     
     hWardenMenu.RemoveAllItems();
     char szBuffer[128];
     
-    Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_title", Warden);
+    Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_title", iClient);
     hWardenMenu.SetTitle(szBuffer);
     
-    Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_noblock", Warden, 
+    Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_noblock", iClient, 
             bNoblock ? "warden_enabled" : "warden_disabled");
     hWardenMenu.AddItem("warden_menu_noblock", szBuffer);
     
-    Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_friendlyfire", Warden, 
+    Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_friendlyfire", iClient, 
             conVarMpFriendlyFire.BoolValue ? "warden_enabled" : "warden_disabled");
     hWardenMenu.AddItem("warden_menu_friendlyfire", szBuffer);
     
-    Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_bhop", Warden, 
+    Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_bhop", iClient, 
             conVarSvAutoBunnyHopping.BoolValue ? "warden_enabled" : "warden_disabled");
     hWardenMenu.AddItem("warden_menu_bhop", szBuffer);
     
-    Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_mute", Warden, conVarMuteTime.FloatValue, 
+    Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_mute", iClient, conVarMuteTime.FloatValue, 
             IsValidHandle(hMuteTimer) ? "warden_enabled" : "warden_disabled");
     hWardenMenu.AddItem("warden_menu_mute", szBuffer);
     
-    Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_splitplayers", Warden);
+    Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_splitplayers", iClient);
     hWardenMenu.AddItem("warden_menu_splitplayers", szBuffer);
     
-    Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_retire", Warden);
+    Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_retire", iClient);
     hWardenMenu.AddItem("warden_menu_retire", szBuffer);
     
-    hWardenMenu.Display(Warden, MENU_TIME_FOREVER);
+    hWardenMenu.Display(iClient, MENU_TIME_FOREVER);
 }
 
 public void WardenMenu_Handler(Menu hMenu, MenuAction action, int iClient, int iItem) {
@@ -574,7 +580,7 @@ public void WardenMenu_Handler(Menu hMenu, MenuAction action, int iClient, int i
                 ExitWarden(iClient, 0);
             }
             
-            WardenMenu_Refresh();
+            WardenMenu_Refresh(iClient);
         }
         case MenuAction_Cancel, MenuAction_End: {
             bWardenMenuOpened = false;
@@ -597,7 +603,7 @@ public void SetTheWarden(int iClient, bool bNotify) {
     
     Warden = iClient;
     SetClientListeningFlags(iClient, VOICE_NORMAL);
-    WardenMenu_Refresh();
+    WardenMenu_Refresh(iClient);
     
     Forward_OnWardenCreation(iClient);
 }
