@@ -72,6 +72,9 @@ public void OnPluginStart() {
     
     RegConsoleCmd("sm_wsplitplayers", SplitPlayers);
     RegConsoleCmd("sm_wsp", SplitPlayers);
+
+    // For our warden to look some extra cool.
+    RegConsoleCmd("say", WardenSay);
     
     // Create menus.
     hWardenMenu = new Menu(WardenMenu_Handler, MenuAction_Display|MenuAction_Select|MenuAction_Cancel|MenuAction_End);
@@ -92,9 +95,6 @@ public void OnPluginStart() {
     // Hooking the events.
     HookEvent("round_start", Event_RoundStart); // For the round start
     HookEvent("player_death", Event_PlayerDeath, EventHookMode_Pre); // To check when our warden dies :)
-    
-    // For our warden to look some extra cool.
-    AddCommandListener(HookPlayerChat, "say");
     
     // Console variables.
     conVarBetterNotifications = CreateConVar("sm_warden_better_notifications", "1", "0 - disabled, 1 - Will display center text.", FCVAR_NONE, true, 0.0, true, 1.0);
@@ -480,22 +480,18 @@ public void OnClientDisconnect(int iClient) {
     }
 }
 
-public Action HookPlayerChat(int iClient, const char[] command, int argc) {
+// Warden chat hook.
+public Action WardenSay(int iClient, int iArgs) {
     // Check so the player typing is a warden and also checking so the client isn't the console!
-    if (Warden == iClient && iClient != 0) {
-        char szText[512];
-        GetCmdArg(1, szText, sizeof(szText));
-        
-        if (szText[0] == '/' || szText[0] == '@' || IsChatTrigger()) {
+    if (Warden == iClient && IsValidClient(iClient)) {
+        char szMessage[256];
+        GetCmdArgString(szMessage, sizeof(szMessage));
+        StripQuotes(szMessage);
+        if (szMessage[0] == '/' || szMessage[0] == '@' || IsChatTrigger()) {
             // Prevent unwanted text to be displayed.
             return Plugin_Handled;
         }
-        
-        if (IsClientInGame(iClient) && IsPlayerAlive(iClient) && GetClientTeam(iClient) == CS_TEAM_CT) {
-            // Typing warden is alive and his team is Counter-Terrorist.
-            CPrintToChatAll("%t", "warden_chat", iClient, szText);
-            return Plugin_Handled;
-        }
+        CPrintToChatAll("%t", "warden_chat", iClient, szMessage);
     }
     
     return Plugin_Continue;
