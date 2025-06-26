@@ -1,22 +1,17 @@
 "Phrases"
-{	
+{
+	"warden_chat"
+	{
+		"#format"	"{1:N},{2:s}"
+		"en"		"{lightblue}[Warden] {frozen}{1}{white}: {2}"
+		"ru"		"{lightblue}[КМД] {frozen}{1}{white}: {2}"
+	}
+
 	"warden_new"
 	{
 		"#format"	"{1:N}"
 		"en"		"{1} is now the warden."
 		"ru"		"{1} стал командиром."
-	}
-	
-	"warden_playerdead"
-	{
-		"en"		"Only alive players may become warden!"
-		"ru"		"Только живые могут стать командиром!"
-	}
-	
-	"warden_ctsonly"
-	{
-		"en"		"Only Counter-Terrorists may become warden."
-		"ru"		"Только спецназовцы могут стать командиром."
 	}
 	
 	"warden_exist"
@@ -30,6 +25,18 @@
 	{
 		"en"		"Warden missing!"
 		"ru"		"Командира нет!"
+	}
+	
+	"warden_playerdead"
+	{
+		"en"		"Only alive players may become warden!"
+		"ru"		"Только живые могут стать командиром!"
+	}
+	
+	"warden_ctsonly"
+	{
+		"en"		"Only Counter-Terrorists may become warden."
+		"ru"		"Только спецназовцы могут стать командиром."
 	}
 	
 	"warden_retire"

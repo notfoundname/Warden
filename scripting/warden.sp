@@ -28,8 +28,7 @@ ConVar conVarBetterNotifications,
     conVarMuteTime,
     conVarNoblockDefault,
     conVarBhopDefault,
-    conVarSplitPlayersRadius,
-    conVarEnhanceRagdolls;
+    conVarSplitPlayersRadius;
 Handle forwardOnWardenCreation, forwardOnWardenRemoved;
 
 public Plugin myinfo = {
@@ -103,7 +102,6 @@ public void OnPluginStart() {
     conVarNoblockDefault = CreateConVar("sm_warden_noblock_default", "1", "0 - start with player collisions, 1 - start with no collisions.", FCVAR_NONE, true, 0.0, true, 1.0);
     conVarBhopDefault = CreateConVar("sm_warden_bhop_default", "0", "0 - start with no bhop, 1 - start with bhop.", FCVAR_NONE, true, 0.0, true, 1.0);
     conVarSplitPlayersRadius = CreateConVar("sm_warden_splitplayers_radius", "512", "Radius of searching for splitting players into two teams. 0 to not care.", FCVAR_NONE, true, 0.0, true, 4096.0);
-    conVarEnhanceRagdolls = CreateConVar("sm_warden_enhance_ragdolls", "1", "Enable to make client-side ragdolls keep player's information (like color and gravity).", FCVAR_NONE, true, 0.0, true, 1.0);
     
     // Initialize config.
     AutoExecConfig(true);
@@ -467,20 +465,6 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool bDontBroad
         }
         RemoveTheWarden(iClient, false);
     }
-
-    if (conVarEnhanceRagdolls.BoolValue) {
-        int iRagdoll = GetEntPropEnt(iClient, Prop_Send, "m_hRagdoll");
-
-        if (iRagdoll > 0 && IsValidEdict(iRagdoll)) {
-            int iColor[4];
-            float fGravity = GetEntityGravity(iClient);
-            GetEntityRenderColor(iClient, iColor[0], iColor[1], iColor[2], iColor[3]);
-
-            SetEntProp(iRagdoll, Prop_Data, "m_nRenderMode", 1);
-            SetEntProp(iRagdoll, Prop_Data, "m_clrRender", iColor);
-            SetEntPropFloat(iRagdoll, Prop_Data, "m_flGravity", fGravity);
-        }
-    }
     
     return Plugin_Continue;
 }
@@ -499,7 +483,7 @@ public void OnClientDisconnect(int iClient) {
 public Action HookPlayerChat(int iClient, const char[] command, int argc) {
     // Check so the player typing is a warden and also checking so the client isn't the console!
     if (Warden == iClient && iClient != 0) {
-        char szText[256];
+        char szText[512];
         GetCmdArg(1, szText, sizeof(szText));
         
         if (szText[0] == '/' || szText[0] == '@' || IsChatTrigger()) {
@@ -509,7 +493,7 @@ public Action HookPlayerChat(int iClient, const char[] command, int argc) {
         
         if (IsClientInGame(iClient) && IsPlayerAlive(iClient) && GetClientTeam(iClient) == CS_TEAM_CT) {
             // Typing warden is alive and his team is Counter-Terrorist.
-            CPrintToChatAll("{blue}%N{white}: %s", iClient, szText);
+            CPrintToChatAll("%t", "warden_chat", iClient, szText);
             return Plugin_Handled;
         }
     }
