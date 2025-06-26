@@ -492,6 +492,7 @@ public Action WardenSay(int iClient, int iArgs) {
             return Plugin_Handled;
         }
         CPrintToChatAll("%t", "warden_chat", iClient, szMessage);
+        return Plugin_Handled;
     }
     
     return Plugin_Continue;
