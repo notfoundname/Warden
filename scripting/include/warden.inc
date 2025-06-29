@@ -3,8 +3,27 @@
 #endif
 #define _warden_included
 
+stock int GetTeamAliveCount(int iTeamNum) {
+    int iCount = 0;
+    for (int iClient = 1; iClient <= MaxClients; iClient++) {
+        if (IsValidClient(iClient) && GetClientTeam(iClient) == iTeamNum && IsPlayerAlive(iClient)) {
+            iCount++;
+        }
+    }
+    return iCount;
+}
+
+stock int GetFirstAlivePlayerOnTeam(int iTeamNum) {
+    for (int iClient = 1; iClient <= MaxClients; iClient++) {
+        if (IsValidClient(iClient) && GetClientTeam(iClient) == iTeamNum && IsPlayerAlive(iClient)) {
+            return iClient;
+        }
+    }
+    return 0;
+}
+
 stock bool IsValidClient(int iClient) {
-    return iClient && IsValidEntity(iClient) && 1 <= iClient <= MaxClients && IsClientInGame(iClient);
+    return IsValidEntity(iClient) && 1 <= iClient <= MaxClients && IsClientInGame(iClient);
 }
 
 /**

@@ -445,6 +445,11 @@ public Action Event_RoundStart(Handle event, const char[] name, bool bDontBroadc
     conVarMpFriendlyFire.SetBool(false, true, false);
     conVarSvAutoBunnyHopping.SetBool(conVarBhopDefault.BoolValue, true, false);
     
+    // Make last remaining CS a Warden.
+    if (GetTeamAliveCount(CS_TEAM_CT) == 1) {
+        SetTheWarden(GetFirstAlivePlayerOnTeam(CS_TEAM_CT), true);
+    }
+    
     return Plugin_Continue;
 }
 
@@ -463,6 +468,11 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool bDontBroad
             PrintCenterTextAll("%t", "warden_dead", Warden);
         }
         RemoveTheWarden(iClient, false);
+        
+        // Make last remaining CS a Warden.
+        if (GetTeamAliveCount(CS_TEAM_CT) == 1) {
+            SetTheWarden(GetFirstAlivePlayerOnTeam(CS_TEAM_CT), true);
+        }
     }
     
     return Plugin_Continue;
@@ -483,6 +493,11 @@ public void OnClientDisconnect(int iClient) {
             PrintCenterTextAll("%t", "warden_disconnected");
         }
         RemoveTheWarden(iClient, false);
+        
+        // Make last remaining CS a Warden.
+        if (GetTeamAliveCount(CS_TEAM_CT) == 1) {
+            SetTheWarden(GetFirstAlivePlayerOnTeam(CS_TEAM_CT), true);
+        }
     }
 }
 
