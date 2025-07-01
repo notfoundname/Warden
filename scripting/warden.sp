@@ -103,10 +103,10 @@ public void OnPluginStart() {
     iLaserEndGlow = PrecacheModel("materials/sprites/glow01.vmt", true);
     
     // Precache sounds.
-    PrecacheSound("sound/vo/npc/female01/runforyourlife01.wav", true);
-    PrecacheSound("sound/physics/metal/chain_impact_soft2.wav", true);
-    PrecacheSound("sound/physics/metal/chain_impact_hard1.wav", true);
-    PrecacheSound("sound/buttons/weapon_cant_buy.wav", true);
+    PrecacheSound("vo/npc/female01/runforyourlife01.wav", true);
+    PrecacheSound("physics/metal/chain_impact_soft2.wav", true);
+    PrecacheSound("physics/metal/chain_impact_hard1.wav", true);
+    PrecacheSound("buttons/weapon_cant_buy.wav", true);
     
     // Hooking the events.
     HookEvent("round_start", Event_RoundStart); // For the round start
@@ -192,10 +192,10 @@ public Action ToggleNoblock(int iClient, int iArgs) {
     
     // Toggle the value and apply it.
     bNoblock = !bNoblock;
-    EmitSoundToAll(bNoblock ? "physics/metal/chain_impact_soft2.wav" : "buttons/weapon_cant_buy.wav");
     for (int i = 1; i <= MaxClients; i++) {
         if (IsValidClient(i)) {
             PlayerApplyNoblock(i, true);
+            ClientCommand(i, bNoblock ? "play physics/metal/chain_impact_soft2.wav" : "play buttons/weapon_cant_buy.wav");
         }
     }
     
@@ -273,7 +273,12 @@ public Action FriendlyFire(int iClient, int iArgs) {
     conVarMpFriendlyFire.SetBool(!conVarMpFriendlyFire.BoolValue, true, false);
     CPrintToChatAll(TRANSLATION_PREFIX,
             conVarMpFriendlyFire.BoolValue ? "warden_friendlyfire_enabled" : "warden_friendlyfire_disabled");
-    EmitSoundToAll(conVarMpFriendlyFire.BoolValue ? "vo/npc/female01/runforyourlife01.wav" : "buttons/weapon_cant_buy.wav");
+    for (int i = 1; i <= MaxClients; i++) {
+        if (IsValidClient(i)) {
+            ClientCommand(i, conVarMpFriendlyFire.BoolValue ? "play vo/npc/female01/runforyourlife01.wav" : "play buttons/weapon_cant_buy.wav");
+        }
+    }
+    
 
     return Plugin_Handled;
 }
