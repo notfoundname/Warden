@@ -23,6 +23,8 @@ ConVar conVarSvAutoBunnyHopping;
 Handle hMuteTimer = null;
 Menu hWardenMenu = null;
 bool bWardenMenuOpened = false;
+Handle hLaserTimer = null;
+int iLaserEndGlow = 0;
 
 ConVar conVarBetterNotifications, 
     conVarMuteTime,
@@ -96,6 +98,16 @@ public void OnPluginStart() {
     // Display current warden on top of the screen.
     CreateTimer(1.0, DisplayCurrentWarden, _, TIMER_REPEAT);
     
+    // Laser.
+    CreateTimer(0.1, LaserTimer, _, TIMER_REPEAT);
+    iLaserEndGlow = PrecacheModel("materials/sprites/glow01.vmt", true);
+    
+    // Precache sounds.
+    PrecacheSound("sound/vo/npc/female01/runforyourlife01.wav", true);
+    PrecacheSound("sound/physics/metal/chain_impact_soft2.wav", true);
+    PrecacheSound("sound/physics/metal/chain_impact_hard1.wav", true);
+    PrecacheSound("sound/buttons/weapon_cant_buy.wav", true);
+    
     // Hooking the events.
     HookEvent("round_start", Event_RoundStart); // For the round start
     HookEvent("player_death", Event_PlayerDeath, EventHookMode_Pre); // To check when our warden dies :)
@@ -110,10 +122,6 @@ public void OnPluginStart() {
     
     // Initialize config.
     AutoExecConfig(true);
-
-    // Precache sounds.
-    PrecacheSound("vo/npc/female01/runforyourlife01.wav", true);
-    PrecacheSound("buttons/weapon_cant_buy.wav", true);
     
     // May not touch this line.
     CreateConVar("sm_warden_version", PLUGIN_VERSION, "The version of the SourceMod plugin JailBreak Warden.", FCVAR_SPONLY|FCVAR_DONTRECORD|FCVAR_REPLICATED|FCVAR_NOTIFY);
@@ -184,6 +192,7 @@ public Action ToggleNoblock(int iClient, int iArgs) {
     
     // Toggle the value and apply it.
     bNoblock = !bNoblock;
+    EmitSoundToAll(bNoblock ? "physics/metal/chain_impact_soft2.wav" : "buttons/weapon_cant_buy.wav");
     for (int i = 1; i <= MaxClients; i++) {
         if (IsValidClient(i)) {
             PlayerApplyNoblock(i, true);
@@ -428,6 +437,32 @@ Action DisplayCurrentWarden(Handle hTimer) {
 }
 
 // ---
+// Laser.
+// ---
+
+Action LaserTimer(Handle hTimer) {
+    if (IsValidClient(Warden) && IsPlayerAlive(Warden)) {
+        if (GetEntProp(Warden, Prop_Send, "m_nButtons") & IN_USE) {
+            float fOrigin[3], fAngles[3], fEnd[3];
+            GetClientEyePosition(Warden, fOrigin);
+            GetClientEyeAngles(Warden, fAngles);
+            TR_TraceRayFilter(fOrigin, fAngles, MASK_SHOT, RayType_Infinite, TraceFilter_Callback, Warden);
+            if (TR_DidHit()) {
+                TR_GetEndPosition(fEnd);
+                
+                // Glowing end.
+                TE_SetupGlowSprite(fEnd, iLaserEndGlow, 0.1, 0.25, 255);
+            }
+        }
+    }
+    return Plugin_Continue;
+}
+
+bool TraceFilter_Callback(int iEntity, int iMask) { 
+    return (iEntity > MaxClients || !iEntity);
+}
+
+// ---
 // Event hooks.
 // ---
 
@@ -445,7 +480,7 @@ public Action Event_RoundStart(Handle event, const char[] name, bool bDontBroadc
     conVarMpFriendlyFire.SetBool(false, true, false);
     conVarSvAutoBunnyHopping.SetBool(conVarBhopDefault.BoolValue, true, false);
     
-    // Make last remaining CS a Warden.
+    // Make last remaining CT a Warden.
     if (GetTeamAliveCount(CS_TEAM_CT) == 1) {
         SetTheWarden(GetFirstAlivePlayerOnTeam(CS_TEAM_CT), true);
     }
@@ -469,7 +504,7 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool bDontBroad
         }
         RemoveTheWarden(iClient, false);
         
-        // Make last remaining CS a Warden.
+        // Make last remaining CT a Warden.
         if (GetTeamAliveCount(CS_TEAM_CT) == 1) {
             SetTheWarden(GetFirstAlivePlayerOnTeam(CS_TEAM_CT), true);
         }
@@ -494,7 +529,7 @@ public void OnClientDisconnect(int iClient) {
         }
         RemoveTheWarden(iClient, false);
         
-        // Make last remaining CS a Warden.
+        // Make last remaining CT a Warden.
         if (GetTeamAliveCount(CS_TEAM_CT) == 1) {
             SetTheWarden(GetFirstAlivePlayerOnTeam(CS_TEAM_CT), true);
         }
