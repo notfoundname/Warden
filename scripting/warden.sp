@@ -443,18 +443,20 @@ Action DisplayCurrentWarden(Handle hTimer) {
 // Laser.
 // ---
 
-public void OnPlayerRunCmdPre(int iClient, int iButtons, int impulse, const float vel[3], const float fAngles[3]) {
+public void OnPlayerRunCmdPre(int iClient, int iButtons, int iImpulse, const float fVel[3], const float fAngles[3]) {
     if (iClient == Warden) {
         if (IsValidClient(iClient) && IsPlayerAlive(iClient)) {
             if (iButtons & IN_USE) {
                 float fOrigin[3], fEnd[3];
                 GetClientEyePosition(iClient, fOrigin);
-                TR_TraceRayFilter(fOrigin, fAngles, MASK_SHOT, RayType_EndPoint, TraceFilter_Callback, iClient);
+                TR_TraceRayFilter(fOrigin, fAngles, MASK_SHOT, RayType_Infinite, TraceFilter_Callback, iClient);
                 if (TR_DidHit()) {
                     TR_GetEndPosition(fEnd);
 
                     // Glowing end.
-                    TE_SetupGlowSprite(fEnd, iLaserEndGlow, 0.01, 0.25, 255);
+                    TE_SetupGlowSprite(fEnd, iLaserEndGlow, 0.02, 0.25, 255);
+
+                    TE_SendToAll();
                 }
             }
         }
