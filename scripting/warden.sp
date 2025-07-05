@@ -23,7 +23,6 @@ ConVar conVarSvAutoBunnyHopping;
 Handle hMuteTimer = null;
 Menu hWardenMenu = null;
 bool bWardenMenuOpened = false;
-Handle hLaserTimer = null;
 int iLaserEndGlow = 0;
 
 ConVar conVarBetterNotifications, 
@@ -99,7 +98,6 @@ public void OnPluginStart() {
     CreateTimer(1.0, DisplayCurrentWarden, _, TIMER_REPEAT);
     
     // Laser.
-    CreateTimer(0.1, LaserTimer, _, TIMER_REPEAT);
     iLaserEndGlow = PrecacheModel("materials/sprites/glow01.vmt", true);
     
     // Precache sounds.
@@ -445,22 +443,22 @@ Action DisplayCurrentWarden(Handle hTimer) {
 // Laser.
 // ---
 
-Action LaserTimer(Handle hTimer) {
-    if (IsValidClient(Warden) && IsPlayerAlive(Warden)) {
-        if (GetEntProp(Warden, Prop_Send, "m_nButtons") & IN_USE) {
-            float fOrigin[3], fAngles[3], fEnd[3];
-            GetClientEyePosition(Warden, fOrigin);
-            GetClientEyeAngles(Warden, fAngles);
-            TR_TraceRayFilter(fOrigin, fAngles, MASK_SHOT, RayType_Infinite, TraceFilter_Callback, Warden);
-            if (TR_DidHit()) {
-                TR_GetEndPosition(fEnd);
-                
-                // Glowing end.
-                TE_SetupGlowSprite(fEnd, iLaserEndGlow, 0.1, 0.25, 255);
+public void OnPlayerRunCmdPre(int iClient, int iButtons, int impulse, const float vel[3], const float fAngles[3]) {
+    if (iClient == Warden) {
+        if (IsValidClient(iClient) && IsPlayerAlive(iClient)) {
+            if (iButtons & IN_USE) {
+                float fOrigin[3], fEnd[3];
+                GetClientEyePosition(iClient, fOrigin);
+                TR_TraceRayFilter(fOrigin, fAngles, MASK_SHOT, RayType_EndPoint, TraceFilter_Callback, iClient);
+                if (TR_DidHit()) {
+                    TR_GetEndPosition(fEnd);
+
+                    // Glowing end.
+                    TE_SetupGlowSprite(fEnd, iLaserEndGlow, 0.01, 0.25, 255);
+                }
             }
         }
     }
-    return Plugin_Continue;
 }
 
 bool TraceFilter_Callback(int iEntity, int iMask) { 
@@ -525,7 +523,7 @@ public Action Event_PlayerSpawn(Handle event, const char[] name, bool bDontBroad
     }
 }
 
-public void OnClientDisconnect(int iClient) {
+public void OnClientDisconnect_Post(int iClient) {
     // The warden disconnected, action!
     if (iClient == Warden) {
         CPrintToChatAll(TRANSLATION_PREFIX, "warden_disconnected");
