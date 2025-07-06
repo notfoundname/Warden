@@ -574,7 +574,7 @@ int GetIndex(int iClient = -1) {
     
     if (iClient != -1) {
         for (int i = 0; i < 64; i++) {
-            iEntity = EntRefToEntIndex(g_iRagdolls[i])
+            iEntity = EntRefToEntIndex(g_iRagdolls[i]);
             if (iEntity <= 0 || !IsValidEntity(iEntity))
                 continue;
                 
@@ -588,7 +588,7 @@ int GetIndex(int iClient = -1) {
     }
     
     for (int i = 0; i < 64; i++) {
-        iEntity = EntRefToEntIndex(g_iRagdolls[i])
+        iEntity = EntRefToEntIndex(g_iRagdolls[i]);
         if (iEntity > 0 && IsValidEntity(iEntity))
             continue;
 
