@@ -27,6 +27,7 @@ Menu hWardenMenu = null;
 bool bWardenMenuOpened = false;
 int iLaserEndGlow = 0;
 
+// Server-side ragdolls.
 Handle g_hRagdoll;
 int g_iRagdolls[64];
 MemoryBlock memory;
@@ -112,6 +113,23 @@ public void OnPluginStart() {
     PrecacheSound("physics/metal/chain_impact_soft2.wav", true);
     PrecacheSound("physics/metal/chain_impact_hard1.wav", true);
     PrecacheSound("buttons/weapon_cant_buy.wav", true);
+
+    // Server-side ragdolls.
+    memory = new MemoryBlock(0x4C);
+
+    Handle hData = LoadGameConfigFile("warden.game");
+
+    StartPrepSDKCall(SDKCall_Static);
+    PrepSDKCall_SetFromConf(hData, SDKConf_Signature, "CreateServerRagdoll");
+    PrepSDKCall_AddParameter(SDKType_CBasePlayer, SDKPass_Pointer);
+    PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
+    PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
+    PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
+    PrepSDKCall_AddParameter(SDKType_Bool, SDKPass_Plain);
+    PrepSDKCall_SetReturnInfo(SDKType_CBaseEntity, SDKPass_Pointer);
+    g_hRagdoll = EndPrepSDKCall();        
+
+    delete hData;
     
     // Hooking the events.
     HookEvent("round_start", Event_RoundStart); // For the round start
@@ -131,26 +149,6 @@ public void OnPluginStart() {
     
     // May not touch this line.
     CreateConVar("sm_warden_version", PLUGIN_VERSION, "The version of the SourceMod plugin JailBreak Warden.", FCVAR_SPONLY|FCVAR_DONTRECORD|FCVAR_REPLICATED|FCVAR_NOTIFY);
-}
-
-public void OnAllPluginsLoaded() {
-    if (conVarEnhanceRagdolls.BoolValue) {
-        memory = new MemoryBlock(0x4C);
-    
-        Handle hData = LoadGameConfigFile("warden.game");
-
-        StartPrepSDKCall(SDKCall_Static);
-        PrepSDKCall_SetFromConf(hData, SDKConf_Signature, "CreateServerRagdoll");
-        PrepSDKCall_AddParameter(SDKType_CBasePlayer, SDKPass_Pointer);
-        PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
-        PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
-        PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
-        PrepSDKCall_AddParameter(SDKType_Bool, SDKPass_Plain);
-        PrepSDKCall_SetReturnInfo(SDKType_CBaseEntity, SDKPass_Pointer);
-        g_hRagdoll = EndPrepSDKCall();        
-
-        delete hData;
-    }
 }
 
 // ---
@@ -547,29 +545,37 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool bDontBroad
     }
 
     if (conVarEnhanceRagdolls.BoolValue) {
+        if (!iClient || GetClientTeam(iClient) <= 1)
+            return;
+    
+        int _iEntity = GetEntPropEnt(iClient, Prop_Send, "m_hRagdoll");
+    
+        if (_iEntity > 0 && IsValidEdict(_iEntity)) {
+            AcceptEntityInput(_iEntity, "Kill");
+        }
+         
         int iRagdoll = SDKCall(g_hRagdoll, iClient, GetEntProp(iClient, Prop_Send, "m_nForceBone"), memory.Address, 3, true);
-        SetEntPropEnt(iRagdoll, Prop_Send, "m_hOwnerEntity", iClient);
-
+        SetEntPropEnt(iRagdoll, Prop_Send, "m_hOwnerEntity", iRagdoll);
         g_iRagdolls[GetIndex()] = EntIndexToEntRef(iRagdoll);
 
         int iColor[4];
         float fGravity = GetEntityGravity(iClient);
         GetEntityRenderColor(iClient, iColor[0], iColor[1], iColor[2], iColor[3]);
 
-        SetEntProp(iRagdoll, Prop_Data, "m_nRenderMode", 1);
-        SetEntProp(iRagdoll, Prop_Data, "m_clrRender", iColor);
-        SetEntPropFloat(iRagdoll, Prop_Data, "m_flGravity", fGravity);
+        SetEntProp(iRagdoll, Prop_Send, "m_clrRender", iColor);
+        SetEntPropFloat(iRagdoll, Prop_Send, "m_flGravity", fGravity);
     }
     
     return Plugin_Continue;
 }
 
-int GetIndex (int iClient = -1) {
+int GetIndex(int iClient = -1) {
     int iEntity;
     
     if (iClient != -1) {
         for (int i = 0; i < 64; i++) {
-            if ((iEntity = EntRefToEntIndex(g_iRagdolls[i])) <= 0 || !IsValidEntity(iEntity))
+            iEntity = EntRefToEntIndex(g_iRagdolls[i])
+            if (iEntity <= 0 || !IsValidEntity(iEntity))
                 continue;
                 
             if (iClient == GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity")) {
@@ -582,7 +588,8 @@ int GetIndex (int iClient = -1) {
     }
     
     for (int i = 0; i < 64; i++) {
-        if ((iEntity = EntRefToEntIndex(g_iRagdolls[i])) > 0 && IsValidEntity(iEntity))
+        iEntity = EntRefToEntIndex(g_iRagdolls[i])
+        if (iEntity > 0 && IsValidEntity(iEntity))
             continue;
 
         return i;
