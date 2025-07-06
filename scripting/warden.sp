@@ -5,8 +5,6 @@
 #include <multicolors>
 #include <warden>
 
-#include <sourcescramble>
-
 #pragma semicolon 1
 #pragma newdecls required
 
@@ -36,8 +34,7 @@ ConVar conVarBetterNotifications,
     conVarMuteTime,
     conVarNoblockDefault,
     conVarBhopDefault,
-    conVarSplitPlayersRadius,
-    conVarEnhanceRagdolls;
+    conVarSplitPlayersRadius;
 Handle forwardOnWardenCreation, forwardOnWardenRemoved;
 
 public Plugin myinfo = {
@@ -142,8 +139,7 @@ public void OnPluginStart() {
     conVarNoblockDefault = CreateConVar("sm_warden_noblock_default", "1", "0 - start with player collisions, 1 - start with no collisions.", FCVAR_NONE, true, 0.0, true, 1.0);
     conVarBhopDefault = CreateConVar("sm_warden_bhop_default", "0", "0 - start with no bhop, 1 - start with bhop.", FCVAR_NONE, true, 0.0, true, 1.0);
     conVarSplitPlayersRadius = CreateConVar("sm_warden_splitplayers_radius", "512", "Radius of searching for splitting players into two teams. 0 to not care.", FCVAR_NONE, true, 0.0, true, 4096.0);
-    conVarEnhanceRagdolls = CreateConVar("sm_warden_enhance_ragdolls", "1", "1 - Force ragdolls to be server-side and keep player's info, like colour and gravity. Requires SourceScramble.", FCVAR_NONE, true, 0.0, true, 1.0);
-
+    
     // Initialize config.
     AutoExecConfig(true);
     
@@ -302,7 +298,6 @@ public Action FriendlyFire(int iClient, int iArgs) {
             ClientCommand(i, conVarMpFriendlyFire.BoolValue ? "play vo/npc/female01/runforyourlife01.wav" : "play buttons/weapon_cant_buy.wav");
         }
     }
-    
 
     return Plugin_Handled;
 }
@@ -497,7 +492,7 @@ bool TraceFilter_Callback(int iEntity, int iMask) {
 // Event hooks.
 // ---
 
-public Action Event_RoundStart(Handle event, const char[] name, bool bDontBroadcast) {
+public void Event_RoundStart(Handle event, const char[] name, bool bDontBroadcast) {
     // Let's remove the current warden if he exists.
     Warden = -1;
 
@@ -518,16 +513,14 @@ public Action Event_RoundStart(Handle event, const char[] name, bool bDontBroadc
     if (GetTeamAliveCount(CS_TEAM_CT) == 1) {
         SetTheWarden(GetFirstAlivePlayerOnTeam(CS_TEAM_CT), true);
     }
-    
-    return Plugin_Continue;
 }
 
-public Action Event_PlayerDeath(Handle event, const char[] name, bool bDontBroadcast) {
+public void Event_PlayerDeath(Handle event, const char[] name, bool bDontBroadcast) {
     // Get the dead client's id.
     int iClient = GetClientOfUserId(GetEventInt(event, "userid"));
     
     if (!IsValidClient(iClient)) {
-        return Plugin_Continue;
+        return;
     }
 
     // Aww damn, he is the warden.
@@ -543,59 +536,6 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool bDontBroad
             SetTheWarden(GetFirstAlivePlayerOnTeam(CS_TEAM_CT), true);
         }
     }
-
-    if (conVarEnhanceRagdolls.BoolValue) {
-        if (!iClient || GetClientTeam(iClient) <= 1)
-            return Plugin_Continue;
-    
-        int _iEntity = GetEntPropEnt(iClient, Prop_Send, "m_hRagdoll");
-    
-        if (_iEntity > 0 && IsValidEdict(_iEntity)) {
-            AcceptEntityInput(_iEntity, "Kill");
-        }
-         
-        int iRagdoll = SDKCall(g_hRagdoll, iClient, GetEntProp(iClient, Prop_Send, "m_nForceBone"), memory.Address, 3, true);
-        SetEntPropEnt(iRagdoll, Prop_Send, "m_hOwnerEntity", iRagdoll);
-        g_iRagdolls[GetIndex()] = EntIndexToEntRef(iRagdoll);
-
-        int iColor[4];
-        float fGravity = GetEntityGravity(iClient);
-        GetEntityRenderColor(iClient, iColor[0], iColor[1], iColor[2], iColor[3]);
-
-        SetEntProp(iRagdoll, Prop_Send, "m_clrRender", iColor);
-        SetEntPropFloat(iRagdoll, Prop_Send, "m_flGravity", fGravity);
-    }
-    
-    return Plugin_Continue;
-}
-
-int GetIndex(int iClient = -1) {
-    int iEntity;
-    
-    if (iClient != -1) {
-        for (int i = 0; i < 64; i++) {
-            iEntity = EntRefToEntIndex(g_iRagdolls[i]);
-            if (iEntity <= 0 || !IsValidEntity(iEntity))
-                continue;
-                
-            if (iClient == GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity")) {
-                g_iRagdolls[i] = 0;
-                return iEntity;
-            }
-        }
-        
-        return -1;
-    }
-    
-    for (int i = 0; i < 64; i++) {
-        iEntity = EntRefToEntIndex(g_iRagdolls[i]);
-        if (iEntity > 0 && IsValidEntity(iEntity))
-            continue;
-
-        return i;
-    }
-    
-    return -1;
 }
 
 public Action Event_PlayerSpawn(Handle event, const char[] name, bool bDontBroadcast) {

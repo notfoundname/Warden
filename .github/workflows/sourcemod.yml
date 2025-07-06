@@ -23,11 +23,6 @@ jobs:
 #         with:
 #           repository: Bara/Multi-Colors
 #           path: multicolors
-      - name: Checkout sourcescramble
-        uses: actions/checkout@v3
-        with:
-          repository: nosoop/SMExt-SourceScramble
-          path: sourcescramble
       - name: Checkout hosties
         uses: actions/checkout@v3
         with:
@@ -38,7 +33,7 @@ jobs:
         with:
           input: scripting/warden.sp
           output: plugins/warden.smx
-          includes: "scripting/include hosties/scripting/include sourcescramble/scripting/include"
+          includes: "scripting/include hosties/scripting/include"
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v4.6.2
         with:
