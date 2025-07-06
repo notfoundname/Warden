@@ -10,7 +10,7 @@
 #define REQUIRE_EXTENSIONS
 
 #undef REQUIRE_PLUGINS
-#include <hosties>
+// #include <hosties> later
 #define REQUIRE_PLUGINS
 
 #pragma semicolon 1
