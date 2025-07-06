@@ -132,11 +132,19 @@ public void OnPluginStart() {
 
     // Initialize config.
     AutoExecConfig(true);
+    
+    // May not touch this line.
+    CreateConVar("sm_warden_version", PLUGIN_VERSION, "The version of the SourceMod plugin JailBreak Warden.", FCVAR_SPONLY|FCVAR_DONTRECORD|FCVAR_REPLICATED|FCVAR_NOTIFY);
+}
 
-    if (conVarEnhanceRagdolls.BoolValue) {
-        if (LibraryExists("sourcescramble")) {
+public void OnAllPluginsLoaded() {
+    if (LibraryExists("sourcescramble")) {
+        #define __sourcescramble_ext_included
+
+        #if defined __sourcescramble_ext_included
+        if (conVarEnhanceRagdolls.BoolValue) {
             memory = new MemoryBlock(0x4C);
-            
+        
             Handle hData = LoadGameConfigFile("warden.game");
     
             StartPrepSDKCall(SDKCall_Static);
@@ -151,10 +159,8 @@ public void OnPluginStart() {
     
             delete hData;
         }
+        #endif
     }
-    
-    // May not touch this line.
-    CreateConVar("sm_warden_version", PLUGIN_VERSION, "The version of the SourceMod plugin JailBreak Warden.", FCVAR_SPONLY|FCVAR_DONTRECORD|FCVAR_REPLICATED|FCVAR_NOTIFY);
 }
 
 // ---
@@ -550,22 +556,22 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool bDontBroad
         }
     }
 
+    #if defined __sourcescramble_ext_included
     if (conVarEnhanceRagdolls.BoolValue) {
-        if (LibraryExists("sourcescramble")) {
-            int iRagdoll = SDKCall(g_hRagdoll, iClient, GetEntProp(iClient, Prop_Send, "m_nForceBone"), memory.Address, 3, true);
-            SetEntPropEnt(iRagdoll, Prop_Send, "m_hOwnerEntity", iClient);
+        int iRagdoll = SDKCall(g_hRagdoll, iClient, GetEntProp(iClient, Prop_Send, "m_nForceBone"), memory.Address, 3, true);
+        SetEntPropEnt(iRagdoll, Prop_Send, "m_hOwnerEntity", iClient);
 
-            g_iRagdolls[GetIndex()] = EntIndexToEntRef(iRagdoll);
+        g_iRagdolls[GetIndex()] = EntIndexToEntRef(iRagdoll);
 
-            int iColor[4];
-            float fGravity = GetEntityGravity(iClient);
-            GetEntityRenderColor(iClient, iColor[0], iColor[1], iColor[2], iColor[3]);
+        int iColor[4];
+        float fGravity = GetEntityGravity(iClient);
+        GetEntityRenderColor(iClient, iColor[0], iColor[1], iColor[2], iColor[3]);
 
-            SetEntProp(iRagdoll, Prop_Data, "m_nRenderMode", 1);
-            SetEntProp(iRagdoll, Prop_Data, "m_clrRender", iColor);
-            SetEntPropFloat(iRagdoll, Prop_Data, "m_flGravity", fGravity);
-        }
+        SetEntProp(iRagdoll, Prop_Data, "m_nRenderMode", 1);
+        SetEntProp(iRagdoll, Prop_Data, "m_clrRender", iColor);
+        SetEntPropFloat(iRagdoll, Prop_Data, "m_flGravity", fGravity);
     }
+    #endif
     
     return Plugin_Continue;
 }
