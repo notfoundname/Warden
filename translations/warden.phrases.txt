@@ -3,8 +3,8 @@
 	"warden_chat"
 	{
 		"#format"	"{1:N},{2:s}"
-		"en"		"{lightblue}[Warden] {frozen}{1}{white}: {2}"
-		"ru"		"{lightblue}[КМД] {frozen}{1}{white}: {2}"
+		"en"		"{lightblue}[Warden] {frozen}{1}{white} : {2}"
+		"ru"		"{lightblue}[КМД] {frozen}{1}{white} : {2}"
 	}
 
 	"warden_new"
