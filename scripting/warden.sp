@@ -454,7 +454,7 @@ public void OnPlayerRunCmdPre(int iClient, int iButtons, int iImpulse, const flo
                     TR_GetEndPosition(fEnd);
 
                     // Glowing end.
-                    TE_SetupGlowSprite(fEnd, iLaserEndGlow, 0.02, 0.25, 255);
+                    TE_SetupGlowSprite(fEnd, iLaserEndGlow, 0.001, 1.0, 255);
 
                     TE_SendToAll();
                 }
