@@ -31,7 +31,7 @@ int iLaserEndGlow = 0;
 
 #undef REQUIRE_EXTENSIONS
 Handle g_hRagdoll;
-int g_iRagdolls[32];
+int g_iRagdolls[64];
 MemoryBlock memory;
 #define REQUIRE_EXTENSIONS
 
@@ -561,7 +561,7 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool bDontBroad
             int iRagdoll = SDKCall(g_hRagdoll, iClient, GetEntProp(iClient, Prop_Send, "m_nForceBone"), memory.Address, 3, true);
             SetEntPropEnt(iRagdoll, Prop_Send, "m_hOwnerEntity", iClient);
 
-            g_iRagdolls[GetIndex()] = EntIndexToEntRef(entity);
+            g_iRagdolls[GetIndex()] = EntIndexToEntRef(iRagdoll);
 
             int iColor[4];
             float fGravity = GetEntityGravity(iClient);
@@ -580,7 +580,7 @@ int GetIndex (int iClient = -1) {
     int iEntity;
     
     if (iClient != -1) {
-        for (int i; i < MAX; i++) {
+        for (int i = 0; i < 64; i++) {
             if ((iEntity = EntRefToEntIndex(g_iRagdolls[i])) <= 0 || !IsValidEntity(iEntity))
                 continue;
                 
@@ -593,7 +593,7 @@ int GetIndex (int iClient = -1) {
         return -1;
     }
     
-    for (int i; i < MAX; i++) {
+    for (int i = 0; i < 64; i++) {
         if ((iEntity = EntRefToEntIndex(g_iRagdolls[i])) > 0 && IsValidEntity(iEntity))
             continue;
 
