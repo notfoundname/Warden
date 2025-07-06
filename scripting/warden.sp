@@ -9,6 +9,10 @@
 #include <sourcescramble>
 #define REQUIRE_EXTENSIONS
 
+#undef REQUIRE_PLUGINS
+#include <hosties>
+#define REQUIRE_PLUGINS
+
 #pragma semicolon 1
 #pragma newdecls required
 
@@ -138,29 +142,25 @@ public void OnPluginStart() {
 }
 
 public void OnAllPluginsLoaded() {
-    if (LibraryExists("sourcescramble")) {
-        #define __sourcescramble_ext_included
+    #undef REQUIRE_EXTENSIONS
+    if (conVarEnhanceRagdolls.BoolValue) {
+        memory = new MemoryBlock(0x4C);
+    
+        Handle hData = LoadGameConfigFile("warden.game");
 
-        #if defined __sourcescramble_ext_included
-        if (conVarEnhanceRagdolls.BoolValue) {
-            memory = new MemoryBlock(0x4C);
-        
-            Handle hData = LoadGameConfigFile("warden.game");
-    
-            StartPrepSDKCall(SDKCall_Static);
-            PrepSDKCall_SetFromConf(hData, SDKConf_Signature, "CreateServerRagdoll");
-            PrepSDKCall_AddParameter(SDKType_CBasePlayer, SDKPass_Pointer);
-            PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
-            PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
-            PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
-            PrepSDKCall_AddParameter(SDKType_Bool, SDKPass_Plain);
-            PrepSDKCall_SetReturnInfo(SDKType_CBaseEntity, SDKPass_Pointer);
-            g_hRagdoll = EndPrepSDKCall();        
-    
-            delete hData;
-        }
-        #endif
+        StartPrepSDKCall(SDKCall_Static);
+        PrepSDKCall_SetFromConf(hData, SDKConf_Signature, "CreateServerRagdoll");
+        PrepSDKCall_AddParameter(SDKType_CBasePlayer, SDKPass_Pointer);
+        PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
+        PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
+        PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
+        PrepSDKCall_AddParameter(SDKType_Bool, SDKPass_Plain);
+        PrepSDKCall_SetReturnInfo(SDKType_CBaseEntity, SDKPass_Pointer);
+        g_hRagdoll = EndPrepSDKCall();        
+
+        delete hData;
     }
+    #define REQUIRE_EXTENSIONS
 }
 
 // ---
@@ -514,7 +514,7 @@ public Action Event_RoundStart(Handle event, const char[] name, bool bDontBroadc
     Warden = -1;
 
     // Laser.
-    iLaserEndGlow = PrecacheModel("materials/sprites/glow01.vmt", true);
+    iLaserEndGlow = PrecacheModel("materials/sprites/glow01.vmt", false);
     
     bNoblock = conVarNoblockDefault.BoolValue;
     
@@ -556,7 +556,7 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool bDontBroad
         }
     }
 
-    #if defined __sourcescramble_ext_included
+    #undef REQUIRE_EXTENSIONS
     if (conVarEnhanceRagdolls.BoolValue) {
         int iRagdoll = SDKCall(g_hRagdoll, iClient, GetEntProp(iClient, Prop_Send, "m_nForceBone"), memory.Address, 3, true);
         SetEntPropEnt(iRagdoll, Prop_Send, "m_hOwnerEntity", iClient);
@@ -571,7 +571,7 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool bDontBroad
         SetEntProp(iRagdoll, Prop_Data, "m_clrRender", iColor);
         SetEntPropFloat(iRagdoll, Prop_Data, "m_flGravity", fGravity);
     }
-    #endif
+    #define REQUIRE_EXTENSIONS
     
     return Plugin_Continue;
 }
