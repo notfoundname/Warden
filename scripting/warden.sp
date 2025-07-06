@@ -474,6 +474,9 @@ bool TraceFilter_Callback(int iEntity, int iMask) {
 public Action Event_RoundStart(Handle event, const char[] name, bool bDontBroadcast) {
     // Let's remove the current warden if he exists.
     Warden = -1;
+
+    // Laser.
+    iLaserEndGlow = PrecacheModel("materials/sprites/glow01.vmt", true);
     
     bNoblock = conVarNoblockDefault.BoolValue;
     

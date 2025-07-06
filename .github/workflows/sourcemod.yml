@@ -16,13 +16,29 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Compile Sourcepawn Plugin
+      - name: Checkout Warden
+        uses: actions/checkout@v3
+#       - name: Checkout multicolors
+#         uses: actions/checkout@v3
+#         with:
+#           repository: Bara/Multi-Colors
+#           path: multicolors
+      - name: Checkout sourcescramble
+        uses: actions/checkout@v3
+        with:
+          repository: nosoop/SMExt-SourceScramble
+          path: sourcescramble
+      - name: Checkout hosties
+        uses: actions/checkout@v3
+        with:
+          repository: notfoundname/sm-hosties-plus
+          path: hosties
+      - name: Compile Warden
         uses: SheplyRam/compile-sourcepawn-plugin@v1
         with:
           input: scripting/warden.sp
           output: plugins/warden.smx
-          includes: scripting/include
+          includes: "scripting/include hosties/scripting/include sourcescramble/scripting/include"
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v4.6.2
         with:
@@ -32,3 +48,7 @@ jobs:
             !.git
             !.github
             !.gitignore
+            !./sourcescramble
+            !./hosties
+            !Warden.code-workspace
+
