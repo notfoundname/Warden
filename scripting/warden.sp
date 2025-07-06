@@ -128,7 +128,7 @@ public void OnPluginStart() {
     conVarNoblockDefault = CreateConVar("sm_warden_noblock_default", "1", "0 - start with player collisions, 1 - start with no collisions.", FCVAR_NONE, true, 0.0, true, 1.0);
     conVarBhopDefault = CreateConVar("sm_warden_bhop_default", "0", "0 - start with no bhop, 1 - start with bhop.", FCVAR_NONE, true, 0.0, true, 1.0);
     conVarSplitPlayersRadius = CreateConVar("sm_warden_splitplayers_radius", "512", "Radius of searching for splitting players into two teams. 0 to not care.", FCVAR_NONE, true, 0.0, true, 4096.0);
-    conVarEnhanceRagdolls = CreateConVar("sm_warden_enhance_ragdolls", "1", "Enable to force ragdolls to be server-side and keep player's info, like colour and gravity. Requires SourceScramble.", FCVAR_NONE, true, 0.0, true, 1.0);
+    conVarEnhanceRagdolls = CreateConVar("sm_warden_enhance_ragdolls", "1", "1 - Force ragdolls to be server-side and keep player's info, like colour and gravity. Requires SourceScramble.", FCVAR_NONE, true, 0.0, true, 1.0);
 
     // Initialize config.
     AutoExecConfig(true);
@@ -137,19 +137,19 @@ public void OnPluginStart() {
         if (LibraryExists("sourcescramble")) {
             memory = new MemoryBlock(0x4C);
             
-            Handle hData = LoadGameConfigFile("css_side_dolls");
-	
-	        StartPrepSDKCall(SDKCall_Static);
-	        PrepSDKCall_SetFromConf(hData, SDKConf_Signature, "CreateServerRagdoll");
-	        PrepSDKCall_AddParameter(SDKType_CBasePlayer, SDKPass_Pointer);
-	        PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
-	        PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
-	        PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
-	        PrepSDKCall_AddParameter(SDKType_Bool, SDKPass_Plain);
-	        PrepSDKCall_SetReturnInfo(SDKType_CBaseEntity, SDKPass_Pointer);
-	        g_hRagdoll = EndPrepSDKCall();		
-	
-	        delete hData;
+            Handle hData = LoadGameConfigFile("warden.game");
+    
+            StartPrepSDKCall(SDKCall_Static);
+            PrepSDKCall_SetFromConf(hData, SDKConf_Signature, "CreateServerRagdoll");
+            PrepSDKCall_AddParameter(SDKType_CBasePlayer, SDKPass_Pointer);
+            PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
+            PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
+            PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
+            PrepSDKCall_AddParameter(SDKType_Bool, SDKPass_Plain);
+            PrepSDKCall_SetReturnInfo(SDKType_CBaseEntity, SDKPass_Pointer);
+            g_hRagdoll = EndPrepSDKCall();        
+    
+            delete hData;
         }
     }
     
@@ -554,14 +554,14 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool bDontBroad
         if (LibraryExists("sourcescramble")) {
             int iOriginalRagdoll = GetEntPropEnt(iClient, Prop_Send, "m_hRagdoll");
 
-		    if(iOriginalRagdoll > 0 && IsValidEdict(iOriginalRagdoll)) {
+            if(iOriginalRagdoll > 0 && IsValidEdict(iOriginalRagdoll)) {
                 AcceptEntityInput(iOriginalRagdoll, "Kill");
             }
 
             int iRagdoll = SDKCall(g_hRagdoll, iClient, GetEntProp(iClient, Prop_Send, "m_nForceBone"), memory.Address, 3, true);
-		    SetEntPropEnt(iRagdoll, Prop_Send, "m_hOwnerEntity", iClient);
+            SetEntPropEnt(iRagdoll, Prop_Send, "m_hOwnerEntity", iClient);
 
-		    g_iRagdolls[GetIndex()] = EntIndexToEntRef(entity);
+            g_iRagdolls[GetIndex()] = EntIndexToEntRef(entity);
 
             int iColor[4];
             float fGravity = GetEntityGravity(iClient);
@@ -574,6 +574,33 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool bDontBroad
     }
     
     return Plugin_Continue;
+}
+
+int GetIndex (int iClient = -1) {
+    int iEntity;
+    
+    if (iClient != -1) {
+        for (int i; i < MAX; i++) {
+            if ((iEntity = EntRefToEntIndex(g_iRagdolls[i])) <= 0 || !IsValidEntity(iEntity))
+                continue;
+                
+            if (iClient == GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity")) {
+                g_iRagdolls[i] = 0;
+                return iEntity;
+            }
+        }
+        
+        return -1;
+    }
+    
+    for (int i; i < MAX; i++) {
+        if ((iEntity = EntRefToEntIndex(g_iRagdolls[i])) > 0 && IsValidEntity(iEntity))
+            continue;
+
+        return i;
+    }
+    
+    return -1;
 }
 
 public Action Event_PlayerSpawn(Handle event, const char[] name, bool bDontBroadcast) {
