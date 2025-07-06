@@ -552,12 +552,6 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool bDontBroad
 
     if (conVarEnhanceRagdolls.BoolValue) {
         if (LibraryExists("sourcescramble")) {
-            int iOriginalRagdoll = GetEntPropEnt(iClient, Prop_Send, "m_hRagdoll");
-
-            if(iOriginalRagdoll > 0 && IsValidEdict(iOriginalRagdoll)) {
-                AcceptEntityInput(iOriginalRagdoll, "Kill");
-            }
-
             int iRagdoll = SDKCall(g_hRagdoll, iClient, GetEntProp(iClient, Prop_Send, "m_nForceBone"), memory.Address, 3, true);
             SetEntPropEnt(iRagdoll, Prop_Send, "m_hOwnerEntity", iClient);
 
