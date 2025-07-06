@@ -25,11 +25,6 @@ Menu hWardenMenu = null;
 bool bWardenMenuOpened = false;
 int iLaserEndGlow = 0;
 
-// Server-side ragdolls.
-Handle g_hRagdoll;
-int g_iRagdolls[64];
-MemoryBlock memory;
-
 ConVar conVarBetterNotifications, 
     conVarMuteTime,
     conVarNoblockDefault,
@@ -110,23 +105,6 @@ public void OnPluginStart() {
     PrecacheSound("physics/metal/chain_impact_soft2.wav", true);
     PrecacheSound("physics/metal/chain_impact_hard1.wav", true);
     PrecacheSound("buttons/weapon_cant_buy.wav", true);
-
-    // Server-side ragdolls.
-    memory = new MemoryBlock(0x4C);
-
-    Handle hData = LoadGameConfigFile("warden.game");
-
-    StartPrepSDKCall(SDKCall_Static);
-    PrepSDKCall_SetFromConf(hData, SDKConf_Signature, "CreateServerRagdoll");
-    PrepSDKCall_AddParameter(SDKType_CBasePlayer, SDKPass_Pointer);
-    PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
-    PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
-    PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
-    PrepSDKCall_AddParameter(SDKType_Bool, SDKPass_Plain);
-    PrepSDKCall_SetReturnInfo(SDKType_CBaseEntity, SDKPass_Pointer);
-    g_hRagdoll = EndPrepSDKCall();        
-
-    delete hData;
     
     // Hooking the events.
     HookEvent("round_start", Event_RoundStart); // For the round start
