@@ -5,13 +5,7 @@
 #include <multicolors>
 #include <warden>
 
-#undef REQUIRE_EXTENSIONS
 #include <sourcescramble>
-#define REQUIRE_EXTENSIONS
-
-#undef REQUIRE_PLUGINS
-// #include <hosties> later
-#define REQUIRE_PLUGINS
 
 #pragma semicolon 1
 #pragma newdecls required
@@ -33,11 +27,9 @@ Menu hWardenMenu = null;
 bool bWardenMenuOpened = false;
 int iLaserEndGlow = 0;
 
-#undef REQUIRE_EXTENSIONS
 Handle g_hRagdoll;
 int g_iRagdolls[64];
 MemoryBlock memory;
-#define REQUIRE_EXTENSIONS
 
 ConVar conVarBetterNotifications, 
     conVarMuteTime,
@@ -142,7 +134,6 @@ public void OnPluginStart() {
 }
 
 public void OnAllPluginsLoaded() {
-    #undef REQUIRE_EXTENSIONS
     if (conVarEnhanceRagdolls.BoolValue) {
         memory = new MemoryBlock(0x4C);
     
@@ -160,7 +151,6 @@ public void OnAllPluginsLoaded() {
 
         delete hData;
     }
-    #define REQUIRE_EXTENSIONS
 }
 
 // ---
@@ -556,7 +546,6 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool bDontBroad
         }
     }
 
-    #undef REQUIRE_EXTENSIONS
     if (conVarEnhanceRagdolls.BoolValue) {
         int iRagdoll = SDKCall(g_hRagdoll, iClient, GetEntProp(iClient, Prop_Send, "m_nForceBone"), memory.Address, 3, true);
         SetEntPropEnt(iRagdoll, Prop_Send, "m_hOwnerEntity", iClient);
@@ -571,7 +560,6 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool bDontBroad
         SetEntProp(iRagdoll, Prop_Data, "m_clrRender", iColor);
         SetEntPropFloat(iRagdoll, Prop_Data, "m_flGravity", fGravity);
     }
-    #define REQUIRE_EXTENSIONS
     
     return Plugin_Continue;
 }
