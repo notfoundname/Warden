@@ -546,7 +546,7 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool bDontBroad
 
     if (conVarEnhanceRagdolls.BoolValue) {
         if (!iClient || GetClientTeam(iClient) <= 1)
-            return;
+            return Plugin_Continue;
     
         int _iEntity = GetEntPropEnt(iClient, Prop_Send, "m_hRagdoll");
     
