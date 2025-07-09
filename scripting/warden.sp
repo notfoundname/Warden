@@ -460,7 +460,7 @@ public void OnPlayerRunCmdPre(int iClient, int iButtons, int iImpulse, const flo
 
                 TE_SendToAll();
 
-                TE_SetupGlowSprite(fEnd, iLaserEndGlow, life, 0.2, 255);
+                TE_SetupGlowSprite(fEnd, iLaserEndGlow, 0.1, 0.2, 255);
 	            TE_SendToAll(0.0);
             }
         }
