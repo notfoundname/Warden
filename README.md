@@ -5,7 +5,6 @@ Made to work alongside SM Hosties, but is independent.
 # Credits
 Originally made by ecca, editied by notfoundname.
 Looked up a lot of stuff from [destoer's plugin](https://github.com/destoer/counter_strike_jailbreak) and [ByDexter's PR](https://github.com/ecca/SourceMod-Plugins/pull/3/).
-Dreyson for [server-side ragdolls](https://forums.alliedmods.net/showthread.php?p=2751180).
 
 # Features
 - Warden with menu

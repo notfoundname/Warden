@@ -24,6 +24,7 @@ Handle hMuteTimer = null;
 Menu hWardenMenu = null;
 bool bWardenMenuOpened = false;
 int iLaserEndGlow, iLaserBeam = 0;
+float fWardenLastAimPos[3];
 
 ConVar conVarBetterNotifications, 
     conVarMuteTime,
@@ -452,9 +453,10 @@ public void OnPlayerRunCmdPre(int iClient, int iButtons, int iImpulse, const flo
                 TR_TraceRayFilter(fOrigin, fAngles, MASK_SHOT, RayType_Infinite, TraceFilter_Callback, iClient);
                 if (TR_DidHit()) {
                     TR_GetEndPosition(fEnd);
-
-                    TE_SetupBeamPoints(fOrigin, fEnd, iLaserBeam, 0, 0, 0, 0.1, 0.12, 0.0, 1, 0.0, {255, 0, 255, 255}, 0);
-                    //TE_SetupGlowSprite(fEnd, iLaserEndGlow, 0.01, 0.25, 127);
+                    //TE_SetupGlowSprite(fEnd, iLaserEndGlow, 0.1, 0.25, 127);
+                    if (fWardenLastAimPos != null)
+                        TE_SetupBeamPoints(fWardenLastAimPos, fEnd, iLaserBeam, 0, 0, 0, 30.0, 2.0, 2.0, 10, 0.0, {173, 216, 230, 255}, 0);
+                    fWardenLastAimPos = fEnd;
 
                     TE_SendToAll();
                 }
