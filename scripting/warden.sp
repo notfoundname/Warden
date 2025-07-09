@@ -454,7 +454,7 @@ public void OnPlayerRunCmdPre(int iClient, int iButtons, int iImpulse, const flo
                 if (TR_DidHit()) {
                     TR_GetEndPosition(fEnd);
                     //TE_SetupGlowSprite(fEnd, iLaserEndGlow, 0.1, 0.25, 127);
-                    if (fWardenLastAimPos[0] == 0.0 && fWardenLastAimPos[1] == 0.0 && fWardenLastAimPos[2] == 0.0)
+                    if (fWardenLastAimPos[0] != 0.0 && fWardenLastAimPos[1] != 0.0 && fWardenLastAimPos[2] != 0.0)
                         TE_SetupBeamPoints(fWardenLastAimPos, fEnd, iLaserBeam, 0, 0, 0, 30.0, 2.0, 2.0, 10, 0.0, {173, 216, 230, 255}, 0);
                     fWardenLastAimPos = fEnd;
 
