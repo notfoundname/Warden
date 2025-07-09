@@ -24,7 +24,7 @@ Handle hMuteTimer = null;
 Menu hWardenMenu = null;
 bool bWardenMenuOpened = false;
 int iLaserEndGlow, iLaserBeam = 0;
-float fWardenLastAimPos[3];
+float fWardenLastAimPos[3] = {0.0, 0.0, 0.0};
 
 ConVar conVarBetterNotifications, 
     conVarMuteTime,
@@ -454,7 +454,7 @@ public void OnPlayerRunCmdPre(int iClient, int iButtons, int iImpulse, const flo
                 if (TR_DidHit()) {
                     TR_GetEndPosition(fEnd);
                     //TE_SetupGlowSprite(fEnd, iLaserEndGlow, 0.1, 0.25, 127);
-                    if (fWardenLastAimPos != null)
+                    if (fWardenLastAimPos != {0.0, 0.0, 0.0})
                         TE_SetupBeamPoints(fWardenLastAimPos, fEnd, iLaserBeam, 0, 0, 0, 30.0, 2.0, 2.0, 10, 0.0, {173, 216, 230, 255}, 0);
                     fWardenLastAimPos = fEnd;
 
@@ -661,6 +661,7 @@ public void SetTheWarden(int iClient, bool bNotify) {
     Warden = iClient;
     SetClientListeningFlags(iClient, VOICE_NORMAL);
     WardenMenu_Refresh(iClient);
+    fWardenLastAimPos = {0.0, 0.0, 0.0};
     
     Forward_OnWardenCreation(iClient);
 }
