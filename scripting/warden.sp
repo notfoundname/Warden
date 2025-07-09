@@ -23,7 +23,7 @@ ConVar conVarSvAutoBunnyHopping;
 Handle hMuteTimer = null;
 Menu hWardenMenu = null;
 bool bWardenMenuOpened = false;
-int iLaserEndGlow = 0;
+int iLaserEndGlow, iLaserBeam = 0;
 
 ConVar conVarBetterNotifications, 
     conVarMuteTime,
@@ -99,6 +99,7 @@ public void OnPluginStart() {
     
     // Laser.
     iLaserEndGlow = PrecacheModel("materials/sprites/glow01.vmt", true);
+    iLaserBeam = PrecacheModel("materials/sprites/laserbeam.vmt", true);
     
     // Precache sounds.
     PrecacheSound("vo/npc/female01/runforyourlife01.wav", true);
@@ -452,8 +453,8 @@ public void OnPlayerRunCmdPre(int iClient, int iButtons, int iImpulse, const flo
                 if (TR_DidHit()) {
                     TR_GetEndPosition(fEnd);
 
-                    // Glowing end.
-                    TE_SetupGlowSprite(fEnd, iLaserEndGlow, 0.001, 1.0, 255);
+                    TE_SetupBeamPoints(fOrigin, fEnd, iLaserBeam, 0, 0, 0, 0.1, 0.12, 0.0, 1, 0.0, {255, 0, 255, 255}, 0);
+                    //TE_SetupGlowSprite(fEnd, iLaserEndGlow, 0.01, 0.25, 127);
 
                     TE_SendToAll();
                 }
@@ -476,6 +477,7 @@ public void Event_RoundStart(Handle event, const char[] name, bool bDontBroadcas
 
     // Laser.
     iLaserEndGlow = PrecacheModel("materials/sprites/glow01.vmt", false);
+    iLaserBeam = PrecacheModel("materials/sprites/laserbeam.vmt", false);
     
     bNoblock = conVarNoblockDefault.BoolValue;
     
