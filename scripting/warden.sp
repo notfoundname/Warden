@@ -458,7 +458,7 @@ public void OnPlayerRunCmdPre(int iClient, int iButtons, int iImpulse, const flo
                     TE_SendToAll(0.0);
                     TE_SetupBeamPoints(fOrigin, fEnd, iLaserBeam, 0, 0, 0, 0.1, 2.0, 2.0, 10, 0.0, {173, 216, 230, 255}, 0);
                     TE_SendToAll(0.0);
-                    TE_SetupGlowSprite(fEnd, iLaserEndGlow, 0.1, 0.2, 255);
+                    TE_SetupGlowSprite(fEnd, iLaserEndGlow, 0.1, 1.0, 255);
                     TE_SendToAll(0.0);
                 }
                 fWardenLastAimPos = fEnd;
