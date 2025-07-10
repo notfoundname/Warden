@@ -99,7 +99,7 @@ public void OnPluginStart() {
     CreateTimer(1.0, DisplayCurrentWarden, _, TIMER_REPEAT);
     
     // Laser.
-    iLaserEndGlow = PrecacheModel("materials/sprites/glow01.vmt", true);
+    iLaserEndGlow = PrecacheModel("materials/sprites/redglow1.vmt", true);
     iLaserBeam = PrecacheModel("materials/sprites/laserbeam.vmt", true);
     
     // Precache sounds.
@@ -458,7 +458,7 @@ public void OnPlayerRunCmdPre(int iClient, int iButtons, int iImpulse, const flo
                     TE_SendToAll();
                     TE_SetupBeamPoints(fOrigin, fEnd, iLaserBeam, 0, 0, 0, 0.1, 0.1, 0.1, 10, 0.0, {173, 216, 230, 255}, 0);
                     TE_SendToAll();
-                    TE_SetupGlowSprite(fEnd, iLaserEndGlow, 0.1, 1.0, 255);
+                    TE_SetupGlowSprite(fEnd, iLaserEndGlow, 0.1, 0.75, 127);
                     TE_SendToAll(0.0);
                 }
                 fWardenLastAimPos = fEnd;
@@ -480,7 +480,7 @@ public void Event_RoundStart(Handle event, const char[] name, bool bDontBroadcas
     Warden = -1;
 
     // Laser.
-    iLaserEndGlow = PrecacheModel("materials/sprites/glow01.vmt", false);
+    iLaserEndGlow = PrecacheModel("materials/sprites/redglow1.vmt", false);
     iLaserBeam = PrecacheModel("materials/sprites/laserbeam.vmt", false);
     
     bNoblock = conVarNoblockDefault.BoolValue;
