@@ -25,6 +25,7 @@ Menu hWardenMenu = null;
 bool bWardenMenuOpened = false;
 int iLaserEndGlow, iLaserBeam = 0;
 float fWardenLastAimPos[3] = {0.0, 0.0, 0.0};
+int iWardenLaserLastRunTime = 0;
 
 ConVar conVarBetterNotifications, 
     conVarMuteTime,
@@ -415,13 +416,13 @@ public Action RemoveWarden(int iClient, int iArgs) {
 
 Action DisplayCurrentWarden(Handle hTimer) {
     Handle hHudMessage = CreateHudSynchronizer();
-    
+
     if (IsValidClient(Warden)) {
         SetHudTextParams(1.5, -1.7, 1.0, 173, 216, 230, 255);
     } else {
         SetHudTextParams(1.5, -1.7, 1.0, 255, 0, 0, 255);
     }
-
+    
     for (int i = 1; i <= MaxClients; i++) {
         if (IsValidClient(i)) {
             char szBuffer[256];
@@ -447,23 +448,36 @@ Action DisplayCurrentWarden(Handle hTimer) {
 public void OnPlayerRunCmdPre(int iClient, int iButtons, int iImpulse, const float fVel[3], const float fAngles[3]) {
     if (iClient == Warden) {
         if (IsValidClient(iClient) && IsPlayerAlive(iClient)) {
-            float fOrigin[3], fEnd[3];
-            GetClientEyePosition(iClient, fOrigin);
-            TR_TraceRayFilter(fOrigin, fAngles, MASK_SHOT, RayType_Infinite, TraceFilter_Callback, iClient);
-            if (TR_DidHit()) {
-                TR_GetEndPosition(fEnd);
-                //TE_SetupGlowSprite(fEnd, iLaserEndGlow, 0.1, 0.25, 127);
-                if (iButtons & IN_USE && fWardenLastAimPos[0] != 0.0 && fWardenLastAimPos[1] != 0.0 && fWardenLastAimPos[2] != 0.0) {
-                    TE_SetupBeamPoints(fWardenLastAimPos, fEnd, iLaserBeam, 0, 0, 0, 30.0, 2.0, 2.0, 10, 0.0, {173, 216, 230, 255}, 0);
-                    TE_SendToAll();
-                    TE_SetupBeamPoints(fOrigin, fEnd, iLaserBeam, 0, 0, 0, 0.1, 0.1, 0.1, 10, 0.0, {173, 216, 230, 255}, 0);
-                    TE_SendToAll();
-                    TE_SetupGlowSprite(fEnd, iLaserEndGlow, 0.1, 0.75, 127);
-                    TE_SendToAll(0.0);
-                }
-                fWardenLastAimPos = fEnd;
+            // We will run it every 4 ticks so it wouldn't look bad (and save performance too since we won't trace every tick)
+            // TODO: maybe there's a better way of dealing with this
+            if (iWardenLaserLastRunTime < 4) {
+                iWardenLaserLastRunTime++;
+            } else {
+                iWardenLaserLastRunTime = 0;
+                DrawLaser(iClient);
             }
         }
+    }
+}
+
+void DrawLaser(int iClient) {
+    float fOrigin[3], fEnd[3];
+    GetClientEyePosition(iClient, fOrigin);
+    TR_TraceRayFilter(fOrigin, fAngles, MASK_SHOT, RayType_Infinite, TraceFilter_Callback, iClient);
+    if (TR_DidHit()) {
+        TR_GetEndPosition(fEnd);
+        if (iButtons & IN_USE && fWardenLastAimPos[0] != 0.0 && fWardenLastAimPos[1] != 0.0 && fWardenLastAimPos[2] != 0.0) {
+            // Glowing snake-like laser.
+            TE_SetupBeamPoints(fWardenLastAimPos, fEnd, iLaserBeam, 0, 0, 0, 30.0, 2.0, 2.0, 10, 0.0, {173, 216, 230, 255}, 0);
+            TE_SendToAll();
+            // Straight laser coming out of warden's head.
+            TE_SetupBeamPoints(fOrigin, fEnd, iLaserBeam, 0, 0, 0, 0.1, 0.1, 0.1, 10, 0.0, {173, 216, 230, 255}, 0);
+            TE_SendToAll();
+            // Glowing sprite, shows what warden is currently looking at.
+            TE_SetupGlowSprite(fEnd, iLaserEndGlow, 0.1, 0.75, 127);
+            TE_SendToAll(0.0);
+        }
+        fWardenLastAimPos = fEnd;
     }
 }
 

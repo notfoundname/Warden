@@ -25,7 +25,6 @@ Looked up a lot of stuff from [destoer's plugin](https://github.com/destoer/coun
 | `sm_warden_bhop_default` | `0` | `bool` | 0 - start with no bhop, 1 - start with bhop. |
 | `sm_warden_splitplayers_radius` | `512` | `float` | Radius of searching for splitting players into two teams. 0 to not care. |
 | `sm_warden_bhop_default` | `1` | `bool` | 0 - start with no bhop, 1 - start with bhop. |
-| `sm_warden_enhance_ragdolls` | `1` | `bool` | `1 - Force ragdolls to be server-side and keep player's info, like colour and gravity. Requires SourceScramble.` |
 | `sm_warden_version` | `PLUGIN_VERSION` | `String` | The version of the SourceMod plugin JailBreak Warden. |
 
 # Commands
