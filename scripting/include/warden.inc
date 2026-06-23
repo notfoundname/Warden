@@ -51,7 +51,7 @@ native void warden_set(int iClient);
 /**
  * Removes the current warden if exists
  *
- * @param iClient The warden client to remove
+ * @param iClient The admin who removed the warden, if valid everyone will be notified
  */
 native void warden_remove(int iClient);
 

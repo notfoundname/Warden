@@ -18,11 +18,6 @@ jobs:
     steps:
       - name: Checkout Warden
         uses: actions/checkout@v3
-#       - name: Checkout multicolors
-#         uses: actions/checkout@v3
-#         with:
-#           repository: Bara/Multi-Colors
-#           path: multicolors
       - name: Checkout hosties
         uses: actions/checkout@v3
         with:

@@ -8,7 +8,7 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define PLUGIN_VERSION   "4.3.0"
+#define PLUGIN_VERSION   "4.4.0"
 #define TRANSLATION_PREFIX "{lightblue}[Warden] {white}%t"
 
 // notfoundname: I tried searching for enum struct but it does not seem to exist.
@@ -25,7 +25,7 @@ Menu hWardenMenu = null;
 bool bWardenMenuOpened = false;
 int iLaserEndGlow, iLaserBeam = 0;
 float fWardenLastAimPos[3] = {0.0, 0.0, 0.0};
-int iWardenLaserLastRunTime = 0;
+int iWardenLaserLastRunTick = 0;
 
 ConVar conVarBetterNotifications, 
     conVarMuteTime,
@@ -97,7 +97,7 @@ public void OnPluginStart() {
     RegAdminCmd("sm_rw", RemoveWarden, ADMFLAG_GENERIC, "sm_rw");
     
     // Display current warden on top of the screen.
-    CreateTimer(1.0, DisplayCurrentWarden, _, TIMER_REPEAT);
+    CreateTimer(0.5, DisplayCurrentWarden, _, TIMER_REPEAT);
     
     // Laser.
     iLaserEndGlow = PrecacheModel("materials/sprites/redglow1.vmt", true);
@@ -134,9 +134,9 @@ public void OnPluginStart() {
 
 // sm_c / sm_w.
 public Action BecomeWarden(int iClient, int iArgs) {
-    if (Warden != -1) {
+    if (warden_exist()) {
         // The warden already exist so there is no point setting a new one
-        if (iClient == Warden) {
+        if (warden_iswarden(iClient)) {
             WardenMenu_Refresh(iClient);
         } else {
             CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_exist", Warden);
@@ -164,13 +164,13 @@ public Action BecomeWarden(int iClient, int iArgs) {
 // sm_uc / sm_uw.
 public Action ExitWarden(int iClient, int iArgs) {
     // Make sure executor is the Warden.
-    if (iClient != Warden) {
+    if (!warden_iswarden(iClient)) {
         CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
         return Plugin_Handled;
     }
     
     // Open for a new warden.
-    Warden = -1;
+    warden_remove(-1);
     
     // API.
     Forward_OnWardenRemoved(iClient);
@@ -186,7 +186,7 @@ public Action ExitWarden(int iClient, int iArgs) {
 // sm_noblock / sm_nb.
 public Action ToggleNoblock(int iClient, int iArgs) {
     // Make sure executor is the Warden or an admin.
-    if (!(iClient == Warden || GetAdminFlag(GetUserAdmin(iClient), ADMFLAG_GENERIC, Access_Real))) {
+    if (!(warden_iswarden(iClient) || CheckCommandAccess(iClient, "sm_hc", ADMFLAG_GENERIC))) {
         CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
         return Plugin_Handled;
     }
@@ -198,6 +198,10 @@ public Action ToggleNoblock(int iClient, int iArgs) {
             PlayerApplyNoblock(i, true);
             ClientCommand(i, bNoblock ? "play physics/metal/chain_impact_soft2.wav" : "play buttons/weapon_cant_buy.wav");
         }
+    }
+    
+    if (bWardenMenuOpened) {
+        WardenMenu_Refresh(Warden);
     }
     
     return Plugin_Handled;
@@ -217,7 +221,7 @@ public void PlayerApplyNoblock(int iClient, bool bCommand) {
 // sm_wmute / sm_wm.
 public Action TempMute(int iClient, int iArgs) {
     // Make sure executor is the Warden or an admin.
-    if (!(iClient == Warden || GetAdminFlag(GetUserAdmin(iClient), ADMFLAG_GENERIC, Access_Real))) {
+    if (!(warden_iswarden(iClient) || CheckCommandAccess(iClient, "sm_hc", ADMFLAG_GENERIC))) {
         CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
         return Plugin_Handled;
     }
@@ -228,6 +232,11 @@ public Action TempMute(int iClient, int iArgs) {
     } else {
         MuteTerrorists(conVarMuteTime.FloatValue);
     }
+    
+    if (bWardenMenuOpened) {
+        WardenMenu_Refresh(Warden);
+    }
+    
     return Plugin_Handled;
 }
 
@@ -235,9 +244,6 @@ public void TempMuteTimer(Handle timer) {
     UnmuteTerrorists();
     // Doing this to update the menu.
     hMuteTimer = null;
-    if (bWardenMenuOpened) {
-        WardenMenu_Refresh(Warden);
-    }
 }
 
 public void MuteTerrorists(float iDuration) {
@@ -266,7 +272,7 @@ public void UnmuteTerrorists() {
 // sm_wmute / sm_wm.
 public Action FriendlyFire(int iClient, int iArgs) {
     // Make sure executor is the Warden or an admin.
-    if (!(iClient == Warden || GetAdminFlag(GetUserAdmin(iClient), ADMFLAG_GENERIC, Access_Real))) {
+    if (!(warden_iswarden(iClient) || CheckCommandAccess(iClient, "sm_hc", ADMFLAG_GENERIC))) {
         CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
         return Plugin_Handled;
     }
@@ -286,7 +292,7 @@ public Action FriendlyFire(int iClient, int iArgs) {
 // sm_wbhop / sm_wbh.
 public Action AutoBunnyHopping(int iClient, int iArgs) {
     // Make sure executor is the Warden or an admin.
-    if (!(iClient == Warden || GetAdminFlag(GetUserAdmin(iClient), ADMFLAG_GENERIC, Access_Real))) {
+    if (!(warden_iswarden(iClient) || CheckCommandAccess(iClient, "sm_hc", ADMFLAG_GENERIC))) {
         CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
         return Plugin_Handled;
     }
@@ -301,7 +307,7 @@ public Action AutoBunnyHopping(int iClient, int iArgs) {
 // sm_wsp / sm_wsplitplayers
 public Action SplitPlayers(int iClient, int iArgs) {
     // Make sure executor is the Warden or an admin.
-    if (!(iClient == Warden || GetAdminFlag(GetUserAdmin(iClient), ADMFLAG_GENERIC, Access_Real))) {
+    if (!(warden_iswarden(iClient) || CheckCommandAccess(iClient, "sm_hc", ADMFLAG_GENERIC))) {
         CPrintToChat(iClient, TRANSLATION_PREFIX, "warden_notwarden");
         return Plugin_Handled;
     }
@@ -381,8 +387,8 @@ public Action HireWarden(int iClient, int iArgs) {
     }
     
     // Is there a warden at the moment?
-    if (Warden != -1) {
-        RemoveTheWarden(iClient, false);
+    if (warden_exist()) {
+        warden_remove(-1);
     }
     
     // Make our valid target the warden.
@@ -400,8 +406,8 @@ public Action HireWarden(int iClient, int iArgs) {
 // sm_removewarden
 public Action RemoveWarden(int iClient, int iArgs) {
     // Is there a warden at the moment?
-    if (Warden != -1) {
-        RemoveTheWarden(iClient, true);
+    if (warden_exist()) {
+        warden_remove(iClient);
     } else {
         CPrintToChatAll(TRANSLATION_PREFIX, "warden_noexist");
     }
@@ -428,9 +434,9 @@ Action DisplayCurrentWarden(Handle hTimer) {
             char szBuffer[256];
 
             if (IsValidClient(Warden)) {
-                Format(szBuffer, sizeof(szBuffer), "%T  ", "warden_exist", i, Warden);
+                FormatEx(szBuffer, sizeof(szBuffer), "%T  ", "warden_exist", i, Warden);
             } else {
-                Format(szBuffer, sizeof(szBuffer), "%T  ", "warden_missing", i);
+                FormatEx(szBuffer, sizeof(szBuffer), "%T  ", "warden_missing", i);
             }
             
             ShowSyncHudText(i, hHudMessage, szBuffer);
@@ -446,36 +452,36 @@ Action DisplayCurrentWarden(Handle hTimer) {
 // ---
 
 public void OnPlayerRunCmdPre(int iClient, int iButtons, int iImpulse, const float fVel[3], const float fAngles[3]) {
-    if (iClient == Warden) {
-        if (IsValidClient(iClient) && IsPlayerAlive(iClient)) {
-            // We will run it every 4 ticks so it wouldn't look bad (and save performance too since we won't trace every tick)
-            // TODO: maybe there's a better way of dealing with this
-            if (iWardenLaserLastRunTime < 4) {
-                iWardenLaserLastRunTime++;
-            } else {
-                iWardenLaserLastRunTime = 0;
-                DrawLaser(iClient);
-            }
-        }
-    }
+    if (!warden_iswarden(iClient))
+        return;
+    
+    iWardenLaserLastRunTick += 1;
+    
+    if (iWardenLaserLastRunTick > 4)
+        iWardenLaserLastRunTick = 0;
+    
+    if (!iWardenLaserLastRunTick)
+        DrawLaser(iClient, fAngles, (iButtons & IN_USE));
 }
 
-void DrawLaser(int iClient) {
+void DrawLaser(int iClient, const float fAngles[3], bool bDraw) {
     float fOrigin[3], fEnd[3];
     GetClientEyePosition(iClient, fOrigin);
     TR_TraceRayFilter(fOrigin, fAngles, MASK_SHOT, RayType_Infinite, TraceFilter_Callback, iClient);
     if (TR_DidHit()) {
         TR_GetEndPosition(fEnd);
-        if (iButtons & IN_USE && fWardenLastAimPos[0] != 0.0 && fWardenLastAimPos[1] != 0.0 && fWardenLastAimPos[2] != 0.0) {
-            // Glowing snake-like laser.
-            TE_SetupBeamPoints(fWardenLastAimPos, fEnd, iLaserBeam, 0, 0, 0, 30.0, 2.0, 2.0, 10, 0.0, {173, 216, 230, 255}, 0);
-            TE_SendToAll();
-            // Straight laser coming out of warden's head.
-            TE_SetupBeamPoints(fOrigin, fEnd, iLaserBeam, 0, 0, 0, 0.1, 0.1, 0.1, 10, 0.0, {173, 216, 230, 255}, 0);
-            TE_SendToAll();
-            // Glowing sprite, shows what warden is currently looking at.
-            TE_SetupGlowSprite(fEnd, iLaserEndGlow, 0.1, 0.75, 127);
-            TE_SendToAll(0.0);
+        if (fWardenLastAimPos[0] != 0.0 && fWardenLastAimPos[1] != 0.0 && fWardenLastAimPos[2] != 0.0) {
+            if (bDraw) {
+                // Glowing snake-like laser.
+                TE_SetupBeamPoints(fWardenLastAimPos, fEnd, iLaserBeam, 0, 0, 0, 25.0, 2.0, 2.0, 10, 0.0, {173, 216, 230, 255}, 0);
+                TE_SendToAll();
+                // Straight laser coming out of warden's head.
+                TE_SetupBeamPoints(fOrigin, fEnd, iLaserBeam, 0, 0, 0, 0.1, 0.1, 0.1, 10, 0.0, {173, 216, 230, 255}, 0);
+                TE_SendToAll();
+                // Glowing sprite, shows what warden is currently looking at.
+                TE_SetupGlowSprite(fEnd, iLaserEndGlow, 0.1, 1.0, 200);
+                TE_SendToAll(0.0);
+            }
         }
         fWardenLastAimPos = fEnd;
     }
@@ -491,7 +497,7 @@ bool TraceFilter_Callback(int iEntity, int iMask) {
 
 public void Event_RoundStart(Handle event, const char[] name, bool bDontBroadcast) {
     // Let's remove the current warden if he exists.
-    Warden = -1;
+    warden_remove(-1);
 
     // Laser.
     iLaserEndGlow = PrecacheModel("materials/sprites/redglow1.vmt", false);
@@ -516,18 +522,14 @@ public void Event_RoundStart(Handle event, const char[] name, bool bDontBroadcas
 public void Event_PlayerDeath(Handle event, const char[] name, bool bDontBroadcast) {
     // Get the dead client's id.
     int iClient = GetClientOfUserId(GetEventInt(event, "userid"));
-    
-    if (!IsValidClient(iClient)) {
-        return;
-    }
 
     // Aww damn, he is the warden.
-    if (iClient == Warden) {
+    if (warden_iswarden(iClient)) {
         CPrintToChatAll(TRANSLATION_PREFIX, "warden_dead", Warden);
         if (conVarBetterNotifications.BoolValue) {
             PrintCenterTextAll("%t", "warden_dead", Warden);
         }
-        RemoveTheWarden(iClient, false);
+        warden_remove(-1);
         
         // Make last remaining CT a Warden.
         if (GetTeamAliveCount(CS_TEAM_CT) == 1) {
@@ -541,16 +543,17 @@ public Action Event_PlayerSpawn(Handle event, const char[] name, bool bDontBroad
     if (IsValidClient(iClient)) {
         PlayerApplyNoblock(iClient, false);
     }
+    return Plugin_Continue;
 }
 
 public void OnClientDisconnect_Post(int iClient) {
     // The warden disconnected, action!
-    if (iClient == Warden) {
+    if (warden_iswarden(iClient)) {
         CPrintToChatAll(TRANSLATION_PREFIX, "warden_disconnected");
         if (conVarBetterNotifications.BoolValue) {
             PrintCenterTextAll("%t", "warden_disconnected");
         }
-        RemoveTheWarden(iClient, false);
+        warden_remove(-1);
         
         // Make last remaining CT a Warden.
         if (GetTeamAliveCount(CS_TEAM_CT) == 1) {
@@ -562,7 +565,7 @@ public void OnClientDisconnect_Post(int iClient) {
 // Warden chat hook.
 public Action WardenSay(int iClient, int iArgs) {
     // Check so the player typing is a warden and also checking so the client isn't the console!
-    if (Warden == iClient && IsValidClient(iClient)) {
+    if (warden_iswarden(iClient)) {
         char szMessage[256];
         GetCmdArgString(szMessage, sizeof(szMessage));
         StripQuotes(szMessage);
@@ -581,46 +584,47 @@ public Action WardenSay(int iClient, int iArgs) {
 // Menus.
 // ---
 
-public void WardenMenu_Refresh(int iClient) {
-    if (!IsValidHandle(hWardenMenu) || iClient == -1) {
+void WardenMenu_Refresh(int iClient) {
+    if (!IsValidHandle(hWardenMenu) || !warden_iswarden(iClient)) {
         return;
     }
     
     hWardenMenu.RemoveAllItems();
     char szBuffer[128];
     
-    Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_title", iClient);
+    FormatEx(szBuffer, sizeof(szBuffer), "%T", "warden_menu_title", iClient);
     hWardenMenu.SetTitle(szBuffer);
     
-    Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_noblock", iClient, 
+    FormatEx(szBuffer, sizeof(szBuffer), "%T", "warden_menu_noblock", iClient, 
             bNoblock ? "warden_enabled" : "warden_disabled");
     hWardenMenu.AddItem("warden_menu_noblock", szBuffer);
     
-    Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_friendlyfire", iClient, 
+    FormatEx(szBuffer, sizeof(szBuffer), "%T", "warden_menu_friendlyfire", iClient, 
             conVarMpFriendlyFire.BoolValue ? "warden_enabled" : "warden_disabled");
     hWardenMenu.AddItem("warden_menu_friendlyfire", szBuffer);
     
-    Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_bhop", iClient, 
+    FormatEx(szBuffer, sizeof(szBuffer), "%T", "warden_menu_bhop", iClient, 
             conVarSvAutoBunnyHopping.BoolValue ? "warden_enabled" : "warden_disabled");
     hWardenMenu.AddItem("warden_menu_bhop", szBuffer);
     
-    Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_mute", iClient, conVarMuteTime.FloatValue, 
+    FormatEx(szBuffer, sizeof(szBuffer), "%T", "warden_menu_mute", iClient, conVarMuteTime.FloatValue, 
             IsValidHandle(hMuteTimer) ? "warden_enabled" : "warden_disabled");
     hWardenMenu.AddItem("warden_menu_mute", szBuffer);
     
-    Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_splitplayers", iClient);
+    FormatEx(szBuffer, sizeof(szBuffer), "%T", "warden_menu_splitplayers", iClient);
     hWardenMenu.AddItem("warden_menu_splitplayers", szBuffer);
     
-    Format(szBuffer, sizeof(szBuffer), "%T", "warden_menu_retire", iClient);
+    FormatEx(szBuffer, sizeof(szBuffer), "%T", "warden_menu_retire", iClient);
     hWardenMenu.AddItem("warden_menu_retire", szBuffer);
     
     hWardenMenu.Display(iClient, MENU_TIME_FOREVER);
 }
 
-public void WardenMenu_Handler(Menu hMenu, MenuAction action, int iClient, int iItem) {
-    if (!IsValidHandle(hMenu) || Warden == -1 || iClient != Warden || !IsPlayerAlive(iClient)) {
+void WardenMenu_Handler(Menu hMenu, MenuAction action, int iClient, int iItem) {
+    if (!IsValidHandle(hMenu) || !warden_iswarden(iClient)) {
         return;
     }
+    
     switch (action) {
         case MenuAction_Display: {
             bWardenMenuOpened = true;
@@ -629,30 +633,31 @@ public void WardenMenu_Handler(Menu hMenu, MenuAction action, int iClient, int i
             char szItem[128];
             hMenu.GetItem(iItem, szItem, sizeof(szItem));
             
-            if (strcmp("warden_menu_noblock", szItem, false) == 0) {
+            if (StrEqual("warden_menu_noblock", szItem)) {
                 ToggleNoblock(iClient, 0);
             }
             
-            if (strcmp("warden_menu_friendlyfire", szItem, false) == 0) {
+            if (StrEqual("warden_menu_friendlyfire", szItem)) {
                 FriendlyFire(iClient, 0);
             }
             
-            if (strcmp("warden_menu_bhop", szItem, false) == 0) {
+            if (StrEqual("warden_menu_bhop", szItem)) {
                 AutoBunnyHopping(iClient, 0);
             }
             
-            if (strcmp("warden_menu_mute", szItem, false) == 0) {
+            if (StrEqual("warden_menu_mute", szItem)) {
                 TempMute(iClient, 0);
             }
             
-            if (strcmp("warden_menu_splitplayers", szItem, false) == 0) {
+            if (StrEqual("warden_menu_splitplayers", szItem)) {
                 SplitPlayers(iClient, 0);
             }
             
-            if (strcmp("warden_menu_retire", szItem, false) == 0) {
+            if (StrEqual("warden_menu_retire", szItem)) {
                 ExitWarden(iClient, 0);
             }
             
+            hWardenMenu.Cancel();
             WardenMenu_Refresh(iClient);
         }
         case MenuAction_Cancel, MenuAction_End: {
@@ -665,7 +670,7 @@ public void WardenMenu_Handler(Menu hMenu, MenuAction action, int iClient, int i
 // Warden setting.
 // ---
 
-public void SetTheWarden(int iClient, bool bNotify) {
+void SetTheWarden(int iClient, bool bNotify) {
     if (bNotify) {
         CPrintToChatAll(TRANSLATION_PREFIX, "warden_new", iClient);
         
@@ -682,18 +687,16 @@ public void SetTheWarden(int iClient, bool bNotify) {
     Forward_OnWardenCreation(iClient);
 }
 
-public void RemoveTheWarden(int iClient, bool bNotify) {
-    if (bNotify) {
-        CPrintToChatAll(TRANSLATION_PREFIX, "warden_removed", iClient, Warden);
+void RemoveTheWarden(int iAdmin) {
+    if (IsValidClient(iAdmin)) {
+        CPrintToChatAll(TRANSLATION_PREFIX, "warden_removed", iAdmin, Warden);
         if (conVarBetterNotifications.BoolValue) {
-            PrintCenterTextAll("%t", "warden_removed", iClient, Warden);
+            PrintCenterTextAll("%t", "warden_removed", iAdmin, Warden);
         }
     }
-    
-    Warden = -1;
+    Forward_OnWardenRemoved(Warden);
     hWardenMenu.Cancel();
-    
-    Forward_OnWardenRemoved(iClient);
+    Warden = -1;
 }
 
 // ---
@@ -722,40 +725,35 @@ public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] sError, int iErr
 }
 
 public int Native_ExistWarden(Handle hPlugin, int iParams) {
-    return Warden != -1;
+    return IsValidClient(Warden) && IsPlayerAlive(Warden);
 }
 
 public int Native_IsWarden(Handle hPlugin, int iParams) {
     int iClient = GetNativeCell(1);
     
-    if (!IsClientInGame(iClient))
+    if (!IsValidClient(iClient))
         ThrowNativeError(SP_ERROR_INDEX, "Client index %i is invalid", iClient);
     
-    return iClient == Warden;
+    return IsPlayerAlive(iClient) && iClient == Warden;
 }
 
 public void Native_SetWarden(Handle hPlugin, int iParams) {
     int iClient = GetNativeCell(1);
     
-    if (!IsClientInGame(iClient)) {
+    if (!IsValidClient(iClient)) {
         ThrowNativeError(SP_ERROR_INDEX, "Client index %i is invalid", iClient);
         return;
     }
     
-    if (Warden == -1) {
+    if (!warden_exist()) {
         SetTheWarden(iClient, true);
     }
 }
 
 public void Native_RemoveWarden(Handle hPlugin, int iParams) {
-    int iClient = GetNativeCell(1);
-    
-    if (!IsClientInGame(iClient))
-        ThrowNativeError(SP_ERROR_INDEX, "Client index %i is invalid", iClient);
-    
-    if (iClient == Warden) {
-        RemoveTheWarden(iClient, true);
-    }
+    if (!warden_exist())
+        ThrowNativeError(SP_ERROR_NOT_FOUND, "Tried to remove non-existant Warden");
+    RemoveTheWarden(GetNativeCell(1));
 }
 
 public void Forward_OnWardenCreation(int iClient) {
