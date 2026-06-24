@@ -201,7 +201,7 @@ public Action ToggleNoblock(int iClient, int iArgs) {
     }
     
     if (bWardenMenuOpened) {
-        WardenMenu_Refresh(Warden);
+        WardenMenu_Refresh(iClient);
     }
     
     return Plugin_Handled;
@@ -234,7 +234,7 @@ public Action TempMute(int iClient, int iArgs) {
     }
     
     if (bWardenMenuOpened) {
-        WardenMenu_Refresh(Warden);
+        WardenMenu_Refresh(iClient);
     }
     
     return Plugin_Handled;
@@ -424,9 +424,9 @@ Action DisplayCurrentWarden(Handle hTimer) {
     Handle hHudMessage = CreateHudSynchronizer();
 
     if (IsValidClient(Warden)) {
-        SetHudTextParams(1.5, -1.7, 1.0, 173, 216, 230, 255);
+        SetHudTextParams(1.5, -1.7, 0.5, 173, 216, 230, 255);
     } else {
-        SetHudTextParams(1.5, -1.7, 1.0, 255, 0, 0, 255);
+        SetHudTextParams(1.5, -1.7, 0.5, 255, 0, 0, 255);
     }
     
     for (int i = 1; i <= MaxClients; i++) {
